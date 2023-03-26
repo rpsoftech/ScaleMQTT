@@ -3,14 +3,17 @@ package hooks
 import (
 	"bytes"
 
-	"github.com/google/uuid"
 	"github.com/mochi-co/mqtt/v2"
 	"github.com/mochi-co/mqtt/v2/packets"
+	"github.com/rs/zerolog"
 )
 
+type Options struct {
+	Log *zerolog.Logger // minimal no-alloc logger
+}
 type ClientPacket struct {
 	mqtt.Client
-	id string
+	// id string
 	// usernamae:
 }
 
@@ -19,7 +22,7 @@ type MQTTHooks struct {
 }
 
 func (h *MQTTHooks) ID() string {
-	return uuid.New().String()
+	return "MQTT Auth Hook With Publish and subscribe Method"
 }
 
 func (h *MQTTHooks) Provides(b byte) bool {
@@ -27,11 +30,18 @@ func (h *MQTTHooks) Provides(b byte) bool {
 		mqtt.OnConnect,
 		mqtt.OnDisconnect,
 		mqtt.OnSubscribed,
+		mqtt.OnSubscribe,
 		mqtt.OnUnsubscribed,
 		mqtt.OnConnectAuthenticate,
 		mqtt.OnPublished,
 		mqtt.OnPublish,
 	}, []byte{b})
+}
+
+func (h *MQTTHooks) SetOpts(l *zerolog.Logger, opts *mqtt.HookOptions) {
+	println("Log Options")
+	h.Log = l
+	h.Log.Debug().Interface("opts", opts).Str("method", "SetOpts").Send()
 }
 
 func (h *MQTTHooks) Init(config any) error {
@@ -44,7 +54,17 @@ func (h *MQTTHooks) OnConnect(cl *mqtt.Client, pk packets.Packet) {
 }
 
 func (h *MQTTHooks) OnDisconnect(cl *mqtt.Client, err error, expire bool) {
-	h.Log.Info().Str("client", cl.ID).Bool("expire", expire).Err(err).Msg("client disconnected")
+	h.Log.Info().Str("client", cl.ID).Bool("expire", expire).Err(err).Msg("client disconnectedibibibib")
+}
+
+// OnUnsubscribe is called when a client unsubscribes from one or more filters.
+func (h *MQTTHooks) OnUnsubscribe(cl *mqtt.Client, pk packets.Packet) packets.Packet {
+	return pk
+}
+
+func (h *MQTTHooks) OnSubscribe(cl *mqtt.Client, pk packets.Packet) packets.Packet {
+	h.Log.Info().Str("client", cl.ID).Interface("filters", pk.Filters).Send()
+	return pk
 }
 
 func (h *MQTTHooks) OnSubscribed(cl *mqtt.Client, pk packets.Packet, reasonCodes []byte) {
@@ -54,7 +74,9 @@ func (h *MQTTHooks) OnSubscribed(cl *mqtt.Client, pk packets.Packet, reasonCodes
 // OnConnectAuthenticate is called when a user attempts to authenticate with the server.
 func (h *MQTTHooks) OnConnectAuthenticate(cl *mqtt.Client, pk packets.Packet) bool {
 	// pk.Connect.Password
-	h.Log.Log().Bytes("password", pk.Connect.Password)
+	println("Here On Auth")
+	h.Log.Info().Bytes("username", cl.Properties.Username).Send()
+	h.Log.Info().Bytes("password", pk.Connect.Password).Send()
 	return true
 }
 
@@ -71,7 +93,7 @@ func (h *MQTTHooks) OnPublish(cl *mqtt.Client, pk packets.Packet) (packets.Packe
 		h.Log.Info().Str("client", cl.ID).Str("payload", string(pkx.Payload)).Msg("received modified packet from client")
 	}
 
-	return pkx, nil
+	return pk, nil
 }
 
 func (h *MQTTHooks) OnPublished(cl *mqtt.Client, pk packets.Packet) {

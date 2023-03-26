@@ -4,12 +4,12 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	hooks "rpsoftech/scaleMQTT/src/hooks"
+	"rpsoftech/scaleMQTT/src/hooks"
 	"syscall"
 
 	"github.com/mochi-co/mqtt/v2"
-	"github.com/mochi-co/mqtt/v2/hooks/debug"
 	"github.com/mochi-co/mqtt/v2/listeners"
+	"github.com/rs/zerolog"
 )
 
 func main() {
@@ -22,23 +22,34 @@ func main() {
 	}()
 
 	server := mqtt.New(nil)
-	// l := server.Log.Level(zerolog.DebugLevel)
-	// server.Log = &l
+	l := server.Log.Level(zerolog.DebugLevel)
+	server.Log = &l
 
-	err := server.AddHook(new(hooks.MQTTHooks), nil)
+	err := server.AddHook(new(hooks.MQTTHooks), &mqtt.Options{})
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = server.AddHook(new(debug.Hook), &debug.Options{
-		// ShowPacketData: true,
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
+	// err = server.AddHook(new(auth.AllowHook), &mqtt.Options{})
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+
+	// err = server.AddHook(new(debug.Hook), &debug.Options{
+	// 	// ShowPacketData: true,
+	// })
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 
 	tcp := listeners.NewTCP("t1", ":1883", nil)
 	err = server.AddListener(tcp)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	ws := listeners.NewWebsocket("ws1", ":1882", nil)
+	err = server.AddListener(ws)
 	if err != nil {
 		log.Fatal(err)
 	}
