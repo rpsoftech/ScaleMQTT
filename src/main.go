@@ -7,6 +7,7 @@ import (
 	"rpsoftech/scaleMQTT/src/hooks"
 	"syscall"
 
+	"github.com/joho/godotenv"
 	"github.com/mochi-co/mqtt/v2"
 	"github.com/mochi-co/mqtt/v2/listeners"
 	"github.com/rs/zerolog"
@@ -15,6 +16,7 @@ import (
 func main() {
 	sigs := make(chan os.Signal, 1)
 	done := make(chan bool, 1)
+	godotenv.Load()
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
 		<-sigs

@@ -2,6 +2,7 @@ package hooks
 
 import (
 	"bytes"
+	"strings"
 
 	"github.com/mochi-co/mqtt/v2"
 	"github.com/mochi-co/mqtt/v2/packets"
@@ -31,6 +32,8 @@ func (h *MQTTHooks) Provides(b byte) bool {
 		mqtt.OnDisconnect,
 		mqtt.OnSubscribed,
 		mqtt.OnSubscribe,
+		mqtt.OnUnsubscribe,
+		mqtt.OnACLCheck,
 		mqtt.OnUnsubscribed,
 		mqtt.OnConnectAuthenticate,
 		mqtt.OnPublished,
@@ -62,6 +65,11 @@ func (h *MQTTHooks) OnUnsubscribe(cl *mqtt.Client, pk packets.Packet) packets.Pa
 	return pk
 }
 
+func (h *MQTTHooks) OnACLCheck(cl *mqtt.Client, topic string, write bool) bool {
+	allowed := strings.HasPrefix(string(cl.Properties.Username)+"/", topic)
+	h.Log.Info().Str("client", string(cl.Properties.Username)).Interface("topic", topic).Interface("Allowed", allowed).Send()
+	return allowed
+}
 func (h *MQTTHooks) OnSubscribe(cl *mqtt.Client, pk packets.Packet) packets.Packet {
 	h.Log.Info().Str("client", cl.ID).Interface("filters", pk.Filters).Send()
 	return pk
@@ -73,11 +81,9 @@ func (h *MQTTHooks) OnSubscribed(cl *mqtt.Client, pk packets.Packet, reasonCodes
 
 // OnConnectAuthenticate is called when a user attempts to authenticate with the server.
 func (h *MQTTHooks) OnConnectAuthenticate(cl *mqtt.Client, pk packets.Packet) bool {
-	// pk.Connect.Password
-	println("Here On Auth")
-	h.Log.Info().Bytes("username", cl.Properties.Username).Send()
-	h.Log.Info().Bytes("password", pk.Connect.Password).Send()
-	return true
+	allowed := string(cl.Properties.Username) == "scale123" && string(pk.Connect.Password) == "scale123"
+	h.Log.Info().Bytes("username", cl.Properties.Username).Bytes("password", pk.Connect.Password).Interface("Allowed", allowed).Send()
+	return allowed
 }
 
 func (h *MQTTHooks) OnUnsubscribed(cl *mqtt.Client, pk packets.Packet) {
