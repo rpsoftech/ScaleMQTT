@@ -66,7 +66,7 @@ func (h *MQTTHooks) OnUnsubscribe(cl *mqtt.Client, pk packets.Packet) packets.Pa
 }
 
 func (h *MQTTHooks) OnACLCheck(cl *mqtt.Client, topic string, write bool) bool {
-	allowed := strings.HasPrefix(string(cl.Properties.Username)+"/", topic)
+	allowed := strings.HasPrefix(topic, string(cl.Properties.Username)+"/")
 	h.Log.Info().Str("client", string(cl.Properties.Username)).Interface("topic", topic).Interface("Allowed", allowed).Send()
 	return allowed
 }
