@@ -54,6 +54,7 @@ func (h *MQTTHooks) Init(config any) error {
 
 func (h *MQTTHooks) OnConnect(cl *mqtt.Client, pk packets.Packet) {
 	h.Log.Info().Str("client", cl.ID).Msgf("client connected")
+	h.Log.Info().Interface("Subscription", cl.State.Subscriptions.GetAll()).Send()
 }
 
 func (h *MQTTHooks) OnDisconnect(cl *mqtt.Client, err error, expire bool) {
@@ -72,6 +73,7 @@ func (h *MQTTHooks) OnACLCheck(cl *mqtt.Client, topic string, write bool) bool {
 }
 func (h *MQTTHooks) OnSubscribe(cl *mqtt.Client, pk packets.Packet) packets.Packet {
 	h.Log.Info().Str("client", cl.ID).Interface("filters", pk.Filters).Send()
+	h.Log.Info().Int("Subscription LIST", cl.State.Subscriptions.Len()).Send()
 	return pk
 }
 
