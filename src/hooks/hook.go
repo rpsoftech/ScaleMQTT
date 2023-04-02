@@ -4,22 +4,24 @@ import (
 	"bytes"
 	"strings"
 
+	"git.mills.io/prologic/bitcask"
 	"github.com/mochi-co/mqtt/v2"
 	"github.com/mochi-co/mqtt/v2/packets"
 	"github.com/rs/zerolog"
 )
 
 type Options struct {
+	mqtt.HookOptions
 	Log *zerolog.Logger // minimal no-alloc logger
+	Db  *bitcask.Bitcask
 }
 type ClientPacket struct {
 	mqtt.Client
-	// id string
-	// usernamae:
 }
 
 type MQTTHooks struct {
 	mqtt.HookBase
+	config *Options
 }
 
 func (h *MQTTHooks) ID() string {
@@ -41,14 +43,24 @@ func (h *MQTTHooks) Provides(b byte) bool {
 	}, []byte{b})
 }
 
-func (h *MQTTHooks) SetOpts(l *zerolog.Logger, opts *mqtt.HookOptions) {
-	println("Log Options")
-	h.Log = l
-	h.Log.Debug().Interface("opts", opts).Str("method", "SetOpts").Send()
-}
+// func (h *MQTTHooks) SetOpts(l *zerolog.Logger, opts *mqtt.HookOptions) {
+// 	println("Assinging Options")
+// 	// h.Db = opts.Db
+// 	// h.Log = l
+// 	// h.Log.Debug().Interface("opts", opts).Str("method", "SetOpts").Send()
+// }
 
 func (h *MQTTHooks) Init(config any) error {
 	h.Log.Info().Msg("initialised")
+	if _, ok := config.(*Options); !ok && config != nil {
+		return mqtt.ErrInvalidConfigType
+	}
+
+	if config == nil {
+		config = new(Options)
+	}
+
+	h.config = config.(*Options)
 	return nil
 }
 
@@ -83,8 +95,12 @@ func (h *MQTTHooks) OnSubscribed(cl *mqtt.Client, pk packets.Packet, reasonCodes
 
 // OnConnectAuthenticate is called when a user attempts to authenticate with the server.
 func (h *MQTTHooks) OnConnectAuthenticate(cl *mqtt.Client, pk packets.Packet) bool {
-	allowed := string(cl.Properties.Username) == "scale123" && string(pk.Connect.Password) == "scale123"
-	h.Log.Info().Bytes("username", cl.Properties.Username).Bytes("password", pk.Connect.Password).Interface("Allowed", allowed).Send()
+	expectedPassword, readerror := h.config.Db.Get(append([]byte("usernamepass/")[:], cl.Properties.Username[:]...))
+
+	allowed := readerror == nil && string(pk.Connect.Password) == string(expectedPassword)
+
+	h.Log.Info().Bytes("username", cl.Properties.Username).Bytes("password", pk.Connect.Password).Bytes("expected Password", expectedPassword).Interface("Allowed", allowed).Send()
+
 	return allowed
 }
 
