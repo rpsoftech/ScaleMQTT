@@ -1,48 +1,43 @@
 package main
 
 import (
-	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"path/filepath"
+	dbPackage "rpsoftech/scaleMQTT/src/db"
+	global "rpsoftech/scaleMQTT/src/global"
 	"rpsoftech/scaleMQTT/src/hooks"
+	"rpsoftech/scaleMQTT/src/routes"
 	"syscall"
 
 	"git.mills.io/prologic/bitcask"
+	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/mochi-co/mqtt/v2"
 	"github.com/mochi-co/mqtt/v2/listeners"
 	"github.com/rs/zerolog"
 )
 
-func GetCuurentPath() string {
-	ex, err := os.Executable()
-	if err != nil {
-		panic(err)
-	}
-	return filepath.Dir(ex)
-}
-
 func main() {
-	log.Println(GetCuurentPath())
-	db, _ := bitcask.Open(filepath.Join(GetCuurentPath(), "dbcollection"))
-	// defer db.Close()
-	db.Put([]byte("Hello"), []byte("World11111111"))
-	val, _ := db.Get([]byte("Hello"))
-	db.Backup(filepath.Join(GetCuurentPath(), "dbcollection1"))
-	fmt.Println(string(val))
+	log.Println(global.GetCuurentPath())
+	db, _ := bitcask.Open(filepath.Join(global.GetCuurentPath(), "dbcollection"))
+	dbPackage.DbConnection = db
 	sigs := make(chan os.Signal, 1)
 	done := make(chan bool, 1)
 	godotenv.Load()
+	keyJWT := os.Getenv("JWTKEY")
+	println(keyJWT)
+	println(global.JWTKEY)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
 		<-sigs
 		done <- true
 	}()
 
-	// r := gin.Default()
-
+	r := gin.Default()
+	routes.AdminRoutes(r)
 	server := mqtt.New(nil)
 	l := server.Log.Level(zerolog.DebugLevel)
 	server.Log = &l
@@ -79,8 +74,20 @@ func main() {
 			log.Fatal(err)
 		}
 	}()
+	srv := &http.Server{
+		Addr:    ":8891",
+		Handler: r,
+	}
+
+	go func() {
+		// service connections
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("listen: %s\n", err)
+		}
+	}()
 
 	<-done
+
 	server.Log.Warn().Msg("caught signal, stopping...")
 	server.Close()
 	server.Log.Info().Msg("main.go finished")
