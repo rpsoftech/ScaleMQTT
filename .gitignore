@@ -1,3 +1,4 @@
 .env
 dbcollection
-__debug_bin
+main.exe
+__debug_bin*

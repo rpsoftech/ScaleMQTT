@@ -3,9 +3,12 @@ package global
 import (
 	"os"
 	"path/filepath"
+
+	"github.com/rs/zerolog"
 )
 
-var JWTKEY string
+var JWTKEY []byte
+var Logger *zerolog.Logger
 
 func GetCuurentPath() string {
 	ex, err := os.Executable()

@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"log"
 	"net/http"
 	"os"
@@ -20,16 +22,35 @@ import (
 	"github.com/rs/zerolog"
 )
 
+func LoadEnv() {
+	println(global.GetCuurentPath())
+	if _, err := os.Stat(".env"); err == nil {
+		// path/to/whatever exists
+		godotenv.Load(".env")
+	} else {
+		godotenv.Load("./../.env")
+	}
+	defaultValue := make([]byte, 128)
+
+	_, err := rand.Read(defaultValue)
+	if err != nil {
+		defaultValue = []byte("thisisjustdefaultvalue")
+	}
+	defaultValueString := hex.EncodeToString(defaultValue)
+	envJWTKeyValue := os.Getenv("JWTKEY")
+	if envJWTKeyValue == "" {
+		envJWTKeyValue = defaultValueString
+	}
+	global.JWTKEY = []byte(envJWTKeyValue)
+}
+
 func main() {
 	log.Println(global.GetCuurentPath())
 	db, _ := bitcask.Open(filepath.Join(global.GetCuurentPath(), "dbcollection"))
 	dbPackage.DbConnection = db
 	sigs := make(chan os.Signal, 1)
 	done := make(chan bool, 1)
-	godotenv.Load()
-	keyJWT := os.Getenv("JWTKEY")
-	println(keyJWT)
-	println(global.JWTKEY)
+	LoadEnv()
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
 		<-sigs
@@ -39,9 +60,13 @@ func main() {
 	r := gin.Default()
 	routes.AdminRoutes(r)
 	server := mqtt.New(nil)
+
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 	l := server.Log.Level(zerolog.DebugLevel)
 	server.Log = &l
+	global.Logger = &l
 
+	server.Log.Debug().Bytes("JWTKEY", global.JWTKEY).Send()
 	err := server.AddHook(new(hooks.MQTTHooks), &hooks.Options{
 		Db: db,
 	})
