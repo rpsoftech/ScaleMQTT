@@ -58,7 +58,7 @@ func main() {
 	}()
 
 	r := gin.Default()
-	routes.AdminRoutes(r)
+	routes.AddRoutes(r)
 	server := mqtt.New(nil)
 
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
