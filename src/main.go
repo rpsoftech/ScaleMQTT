@@ -81,13 +81,21 @@ func main() {
 	// 	log.Fatal(err)
 	// }
 
-	tcp := listeners.NewTCP("t1", ":1883", nil)
+	MQTTTCPPORT := os.Getenv("MQTTTCPPORT")
+	if MQTTTCPPORT == "" {
+		MQTTTCPPORT = "1883"
+	}
+	tcp := listeners.NewTCP("t1", ":"+MQTTTCPPORT, nil)
 	err = server.AddListener(tcp)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	ws := listeners.NewWebsocket("ws1", ":1882", nil)
+	MQTTWSPORT := os.Getenv("MQTTWSPORT")
+	if MQTTWSPORT == "" {
+		MQTTWSPORT = "1882"
+	}
+	ws := listeners.NewWebsocket("ws1", ":"+MQTTWSPORT, nil)
 	err = server.AddListener(ws)
 	if err != nil {
 		log.Fatal(err)
