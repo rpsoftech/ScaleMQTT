@@ -99,8 +99,12 @@ func main() {
 			log.Fatal(err)
 		}
 	}()
+	HTTPPORT := os.Getenv("HTTPPORT")
+	if HTTPPORT == "" {
+		HTTPPORT = "8891"
+	}
 	srv := &http.Server{
-		Addr:    ":8891",
+		Addr:    ":" + HTTPPORT,
 		Handler: r,
 	}
 
@@ -108,6 +112,8 @@ func main() {
 		// service connections
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("listen: %s\n", err)
+		} else {
+			println("started listning: %s\n", HTTPPORT)
 		}
 	}()
 
