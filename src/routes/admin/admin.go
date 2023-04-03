@@ -21,6 +21,7 @@ func AdminRoutes(router *gin.Engine) {
 		adminRouter.Use(middlerware.JwtAuthMiddleware())
 		adminRouter.POST("/addNewAdmin", AddNewAdminUser)
 		adminRouter.GET("/databaseSnapshot", GetAllDataFromDatabase)
+		adminRouter.GET("/mqttStatus", GetAllMqttStatus)
 		adminRouter.POST("/modifyMqttUserNamePassword", AddChangeMqttUserNameAndPassword)
 		adminRouter.GET("/isLoggedin", IsAdminLoggedIn)
 		adminRouter.GET("/", func(c *gin.Context) {

@@ -3,6 +3,7 @@ package hooks
 import (
 	"bytes"
 	dbPackage "rpsoftech/scaleMQTT/src/db"
+	"rpsoftech/scaleMQTT/src/global"
 	"strings"
 
 	"git.mills.io/prologic/bitcask"
@@ -71,7 +72,10 @@ func (h *MQTTHooks) OnConnect(cl *mqtt.Client, pk packets.Packet) {
 }
 
 func (h *MQTTHooks) OnDisconnect(cl *mqtt.Client, err error, expire bool) {
-	h.Log.Info().Str("client", cl.ID).Bool("expire", expire).Err(err).Msg("client disconnectedibibibib")
+	if val, ok := global.MQTTConnectionStatusMap[string(cl.Properties.Username)]; ok {
+		val.Connected = false
+	}
+	h.Log.Info().Str("client", cl.ID).Bool("expire", expire).Err(err).Msg("client disconnected")
 }
 
 // OnUnsubscribe is called when a client unsubscribes from one or more filters.
@@ -96,12 +100,19 @@ func (h *MQTTHooks) OnSubscribed(cl *mqtt.Client, pk packets.Packet, reasonCodes
 
 // OnConnectAuthenticate is called when a user attempts to authenticate with the server.
 func (h *MQTTHooks) OnConnectAuthenticate(cl *mqtt.Client, pk packets.Packet) bool {
-
-	expectedPassword, readerror := dbPackage.GetPasswordForScale(string(cl.Properties.Username))
+	stringUserName := string(cl.Properties.Username)
+	expectedPassword, readerror := dbPackage.GetPasswordForScale(stringUserName)
 	allowed := readerror == nil && bytes.Equal(pk.Connect.Password, expectedPassword)
 
 	h.Log.Info().Bytes("username", cl.Properties.Username).Bytes("password", pk.Connect.Password).Bytes("expected Password", expectedPassword).Interface("Allowed", allowed).Send()
-
+	if allowed {
+		global.MQTTConnectionStatusMap[stringUserName] = global.MQTTConnectionMeta{
+			Connected:  true,
+			UserName:   stringUserName,
+			LocationID: "",
+			Weight:     0.0,
+		}
+	}
 	return allowed
 }
 

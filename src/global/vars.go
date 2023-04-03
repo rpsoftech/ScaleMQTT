@@ -9,10 +9,10 @@ import (
 )
 
 type MQTTConnectionMeta struct {
-	Connected  bool   `json:"connected"`
-	UserName   string `json:"name"`
-	LocationID string `json:"locationName"`
-	Weight     string `json:"weight"`
+	Connected  bool    `json:"connected"`
+	UserName   string  `json:"name"`
+	LocationID string  `json:"locationName"`
+	Weight     float64 `json:"weight"`
 }
 
 var JWTKEY []byte
