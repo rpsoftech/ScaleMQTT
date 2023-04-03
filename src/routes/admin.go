@@ -8,8 +8,9 @@ import (
 	"rpsoftech/scaleMQTT/src/global"
 	"rpsoftech/scaleMQTT/src/middlerware"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 type LoginResponse struct {
@@ -64,12 +65,12 @@ func AdminLoginFunction(c *gin.Context) {
 	}
 
 	if allowed {
-		expirationTime := time.Now().Add(time.Minute * 30).Unix()
+		expirationTime := time.Now().Add(time.Minute * 30)
 		claims := &middlerware.UserClaims{
 			Username: reqBody.UserName,
 			Role:     "admin",
-			StandardClaims: jwt.StandardClaims{
-				ExpiresAt: expirationTime,
+			RegisteredClaims: jwt.RegisteredClaims{
+				ExpiresAt: jwt.NewNumericDate(expirationTime),
 			},
 		}
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -93,13 +94,14 @@ func AddNewUser(c *gin.Context) {
 		return
 	}
 
-	if err := validate.Struct(user); err != nil {
+	if err := validator.New().Struct(user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
-	// Save the user to the database
-	// ...
-
+	err := dbPackage.DbConnection.Put([]byte(`adminuser/`+user.UserName), []byte(user.Password))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{"message": "User registered successfully"})
 }

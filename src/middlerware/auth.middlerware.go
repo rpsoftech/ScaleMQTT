@@ -6,14 +6,14 @@ import (
 	global "rpsoftech/scaleMQTT/src/global"
 	"strings"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 type UserClaims struct {
 	Username string `json:"username"`
 	Role     string `json:"role"`
-	jwt.StandardClaims
+	jwt.RegisteredClaims
 }
 
 func (h *UserClaims) IsAdmin() bool {
