@@ -27,5 +27,4 @@ func AddChangeMqttUserNameAndPassword(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusAccepted, gin.H{"success": true})
-	return
 }
