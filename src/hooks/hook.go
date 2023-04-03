@@ -2,6 +2,7 @@ package hooks
 
 import (
 	"bytes"
+	dbPackage "rpsoftech/scaleMQTT/src/db"
 	"strings"
 
 	"git.mills.io/prologic/bitcask"
@@ -95,9 +96,9 @@ func (h *MQTTHooks) OnSubscribed(cl *mqtt.Client, pk packets.Packet, reasonCodes
 
 // OnConnectAuthenticate is called when a user attempts to authenticate with the server.
 func (h *MQTTHooks) OnConnectAuthenticate(cl *mqtt.Client, pk packets.Packet) bool {
-	expectedPassword, readerror := h.config.Db.Get(append([]byte("usernamepass/")[:], cl.Properties.Username[:]...))
 
-	allowed := readerror == nil && string(pk.Connect.Password) == string(expectedPassword)
+	expectedPassword, readerror := dbPackage.GetPasswordForScale(string(cl.Properties.Username))
+	allowed := readerror == nil && bytes.Equal(pk.Connect.Password, expectedPassword)
 
 	h.Log.Info().Bytes("username", cl.Properties.Username).Bytes("password", pk.Connect.Password).Bytes("expected Password", expectedPassword).Interface("Allowed", allowed).Send()
 

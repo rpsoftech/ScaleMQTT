@@ -20,6 +20,7 @@ func AdminRoutes(router *gin.Engine) {
 	{
 		adminRouter.Use(middlerware.JwtAuthMiddleware())
 		adminRouter.POST("/addNewAdmin", AddNewAdminUser)
+		adminRouter.POST("/modifyMqttUserNamePassword", AddChangeMqttUserNameAndPassword)
 		adminRouter.GET("/isLoggedin", IsAdminLoggedIn)
 		adminRouter.GET("/", func(c *gin.Context) {
 			c.String(http.StatusOK, "Welcome Gin Server")
