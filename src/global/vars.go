@@ -19,7 +19,7 @@ var JWTKEY []byte
 var Logger *zerolog.Logger
 var Validator = validator.New()
 
-var MQTTConnectionStatusMap = make(map[string]MQTTConnectionMeta)
+var MQTTConnectionStatusMap = make(map[string]*MQTTConnectionMeta)
 
 func IsConnected(username string) (ok bool) {
 	if val, has := MQTTConnectionStatusMap[username]; has {
