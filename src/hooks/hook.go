@@ -145,9 +145,9 @@ func (h *MQTTHooks) OnPublish(cl *mqtt.Client, pk packets.Packet) (packets.Packe
 	// }
 	if strings.HasSuffix(pk.TopicName, "WeighingScale/SerialRead") {
 		stringPayload := string(pk.Payload)
-		negative := strings.HasSuffix(stringPayload, "\f")
+		negative := strings.HasSuffix(stringPayload, "\\f")
 		i, err := strconv.ParseFloat(NoNumaricRegEx.ReplaceAllString(stringPayload, ""), 32)
-		if err == nil {
+		if err != nil {
 			h.Log.Error().Msg(err.Error())
 		} else {
 			if val, ok := global.MQTTConnectionStatusMap[string(cl.Properties.Username)]; ok {
