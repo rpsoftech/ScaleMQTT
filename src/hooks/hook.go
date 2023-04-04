@@ -73,8 +73,11 @@ func (h *MQTTHooks) OnConnect(cl *mqtt.Client, pk packets.Packet) {
 
 func (h *MQTTHooks) OnDisconnect(cl *mqtt.Client, err error, expire bool) {
 	if val, ok := global.MQTTConnectionStatusMap[string(cl.Properties.Username)]; ok {
-		val.Connected = false
-		global.MQTTConnectionStatusMap[string(cl.Properties.Username)] = val
+		val.Count -= 1
+		if val.Count <= 0 {
+			val.Connected = false
+		}
+		// global.MQTTConnectionStatusMap[string(cl.Properties.Username)] = val
 	}
 	h.Log.Info().Str("client", cl.ID).Bool("expire", expire).Err(err).Msg("client disconnected")
 }
@@ -107,11 +110,18 @@ func (h *MQTTHooks) OnConnectAuthenticate(cl *mqtt.Client, pk packets.Packet) bo
 
 	h.Log.Info().Bytes("username", cl.Properties.Username).Bytes("password", pk.Connect.Password).Bytes("expected Password", expectedPassword).Interface("Allowed", allowed).Send()
 	if allowed {
-		global.MQTTConnectionStatusMap[stringUserName] = &global.MQTTConnectionMeta{
-			Connected:  true,
-			UserName:   stringUserName,
-			LocationID: "",
-			Weight:     0.0,
+		if val, ok := global.MQTTConnectionStatusMap[stringUserName]; ok {
+			val.Connected = true
+			val.Weight = 0.0
+			val.Count += 1
+		} else {
+			global.MQTTConnectionStatusMap[stringUserName] = &global.MQTTConnectionMeta{
+				Connected:  true,
+				UserName:   stringUserName,
+				LocationID: "",
+				Weight:     0.0,
+				Count:      1,
+			}
 		}
 	}
 	return allowed

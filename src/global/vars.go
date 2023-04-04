@@ -13,6 +13,7 @@ type MQTTConnectionMeta struct {
 	UserName   string  `json:"name"`
 	LocationID string  `json:"locationName"`
 	Weight     float64 `json:"weight"`
+	Count      int     `json:"-"`
 }
 
 var JWTKEY []byte
