@@ -145,7 +145,7 @@ func (h *MQTTHooks) OnPublish(cl *mqtt.Client, pk packets.Packet) (packets.Packe
 	// }
 	if strings.HasSuffix(pk.TopicName, "WeighingScale/SerialRead") {
 		stringPayload := string(pk.Payload)
-		negative := strings.HasSuffix(stringPayload, "\\f")
+		negative := strings.Contains(stringPayload, "\\f")
 		i, err := strconv.ParseFloat(NoNumaricRegEx.ReplaceAllString(stringPayload, ""), 32)
 		if err != nil {
 			h.Log.Error().Msg(err.Error())
