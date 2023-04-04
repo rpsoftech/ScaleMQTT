@@ -2,8 +2,10 @@ package hooks
 
 import (
 	"bytes"
+	"regexp"
 	dbPackage "rpsoftech/scaleMQTT/src/db"
 	"rpsoftech/scaleMQTT/src/global"
+	"strconv"
 	"strings"
 
 	"git.mills.io/prologic/bitcask"
@@ -25,6 +27,8 @@ type MQTTHooks struct {
 	mqtt.HookBase
 	config *Options
 }
+
+var NoNumaricRegEx = regexp.MustCompile(`[^0-9 ]+`)
 
 func (h *MQTTHooks) ID() string {
 	return "MQTT Auth Hook With Publish and subscribe Method"
@@ -134,12 +138,27 @@ func (h *MQTTHooks) OnUnsubscribed(cl *mqtt.Client, pk packets.Packet) {
 func (h *MQTTHooks) OnPublish(cl *mqtt.Client, pk packets.Packet) (packets.Packet, error) {
 	h.Log.Info().Str("client", cl.ID).Str("payload", string(pk.Payload)).Msg("received from client")
 
-	pkx := pk
-	if string(pk.Payload) == "hello" {
-		pkx.Payload = []byte("hello world")
-		h.Log.Info().Str("client", cl.ID).Str("payload", string(pkx.Payload)).Msg("received modified packet from client")
+	// pkx := pk
+	// if string(pk.Payload) == "hello" {
+	// 	pkx.Payload = []byte("hello world")
+	// 	h.Log.Info().Str("client", cl.ID).Str("payload", string(pkx.Payload)).Msg("received modified packet from client")
+	// }
+	if strings.HasSuffix(pk.TopicName, "WeighingScale/SerialRead") {
+		stringPayload := string(pk.Payload)
+		negative := strings.HasSuffix(stringPayload, "\f")
+		i, err := strconv.ParseFloat(NoNumaricRegEx.ReplaceAllString(stringPayload, ""), 32)
+		if err == nil {
+			h.Log.Error().Msg(err.Error())
+		} else {
+			if val, ok := global.MQTTConnectionStatusMap[string(cl.Properties.Username)]; ok {
+				f := i / 10
+				if negative {
+					f = f * -1
+				}
+				val.Weight = f
+			}
+		}
 	}
-
 	return pk, nil
 }
 
