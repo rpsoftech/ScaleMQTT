@@ -1,20 +1,45 @@
 package main
 
-import "fmt"
+import (
+	"crypto/tls"
+	"log"
+	"net/http"
+	"os"
 
-type demo struct {
-	Url string `json:"url" validate:"required,ipv4"`
-}
+	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/acme/autocert"
+)
 
 func main() {
-	data := make(map[string]string)
-	val := data["SSSSg"]
-	fmt.Println("value:=", val)
-	// s := string(`{"operation": "get", "key": "example"}`)
-	// err := validator.New().Struct(&demo{
-	// 	Url: "192.168.1.11",
-	// })
-	// if err != nil {
-	// 	println(err.Error())
-	// }
+	r := gin.Default()
+
+	// Ping handler
+	r.GET("/ping", func(c *gin.Context) {
+		c.String(200, "pong")
+	})
+
+	HTTPPORT := os.Getenv("HTTPPORT")
+	if HTTPPORT == "" {
+		HTTPPORT = "1880"
+	}
+	m := autocert.Manager{
+		Prompt: autocert.AcceptTOS,
+
+		HostPolicy: autocert.HostWhitelist("scale.rosof.tech"),
+		// Cache:      autocert.DirCache("/var/www/.cache"),
+	}
+	srv := &http.Server{
+		Addr:    ":" + HTTPPORT,
+		Handler: r,
+		TLSConfig: &tls.Config{
+			GetCertificate: m.GetCertificate,
+		},
+	}
+
+	// service connections
+	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		log.Fatalf("listen: %s\n", err)
+	} else {
+		println("started listning: %s\n", HTTPPORT)
+	}
 }

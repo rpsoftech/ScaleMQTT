@@ -111,9 +111,17 @@ func main() {
 	if HTTPPORT == "" {
 		HTTPPORT = "8891"
 	}
+	// m := autocert.Manager{
+	// 	Prompt:     autocert.AcceptTOS,
+	// 	HostPolicy: autocert.HostWhitelist("scale.rosof.tech"),
+	// 	Cache:      autocert.DirCache("/var/www/.cache"),
+	// }
 	srv := &http.Server{
 		Addr:    ":" + HTTPPORT,
 		Handler: r,
+		// TLSConfig: &tls.Config{
+		// 	GetCertificate: m.GetCertificate,
+		// },
 	}
 
 	go func() {
