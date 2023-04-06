@@ -22,7 +22,7 @@ func AddChangeMqttUserNameAndPassword(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	if err := db.AddScaleUserNamePassword(user.UserName, []byte(user.Password)); err != nil {
+	if err := db.DBClassObject.AddScaleUserNamePassword(user.UserName, []byte(user.Password)); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

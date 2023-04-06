@@ -6,13 +6,23 @@ import (
 	"git.mills.io/prologic/bitcask"
 )
 
-var DbConnection *bitcask.Bitcask
+type DbClass struct {
+	connection *bitcask.Bitcask
+}
 
-func TakeBackup() map[string]map[string]string {
+var DBClassObject *DbClass
+
+func (DBObject *DbClass) CloseConnection() {
+	DBObject.connection.Close()
+}
+func (DBObject *DbClass) SetConnection(con *bitcask.Bitcask) {
+	DBObject.connection = con
+}
+func (DBObject *DbClass) TakeBackup() map[string]map[string]string {
 	data := make(map[string]map[string]string)
-	DbConnection.Fold(func(key []byte) error {
+	DBObject.connection.Fold(func(key []byte) error {
 
-		val, _ := DbConnection.Get(key)
+		val, _ := DBObject.connection.Get(key)
 
 		indexes := strings.Split(string(key), "/")
 		if _, ok := data[indexes[0]]; !ok {

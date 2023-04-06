@@ -2,7 +2,7 @@ package routes
 
 import (
 	"net/http"
-	dbPackage "rpsoftech/scaleMQTT/src/db"
+	"rpsoftech/scaleMQTT/src/db"
 	"rpsoftech/scaleMQTT/src/global"
 
 	"github.com/gin-gonic/gin"
@@ -26,7 +26,7 @@ func AddNewAdminUser(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	err := dbPackage.DbConnection.Put([]byte(`adminuser/`+user.UserName), []byte(user.Password))
+	err := db.DBClassObject.AddNewAdmin([]byte(`adminuser/`+user.UserName), []byte(user.Password))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

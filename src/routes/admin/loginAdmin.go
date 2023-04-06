@@ -1,7 +1,7 @@
 package routes
 
 import (
-	dbPackage "rpsoftech/scaleMQTT/src/db"
+	"rpsoftech/scaleMQTT/src/db"
 	"rpsoftech/scaleMQTT/src/global"
 	"rpsoftech/scaleMQTT/src/middlerware"
 	"time"
@@ -26,7 +26,7 @@ func AdminLoginFunction(c *gin.Context) {
 		allowed = true
 	} else {
 
-		pass, _ := dbPackage.DbConnection.Get([]byte(`adminuser/` + reqBody.UserName))
+		pass, _ := db.DBClassObject.GetAdmin([]byte(`adminuser/` + reqBody.UserName))
 		if string(pass) == reqBody.Password {
 			allowed = true
 		}

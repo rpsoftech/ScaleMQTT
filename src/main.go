@@ -8,7 +8,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
-	dbPackage "rpsoftech/scaleMQTT/src/db"
+	"rpsoftech/scaleMQTT/src/db"
 	global "rpsoftech/scaleMQTT/src/global"
 	"rpsoftech/scaleMQTT/src/hooks"
 	"rpsoftech/scaleMQTT/src/routes"
@@ -44,10 +44,17 @@ func LoadEnv() {
 	global.JWTKEY = []byte(envJWTKeyValue)
 }
 
+func initialiseDB() {
+	dbConnection, _ := bitcask.Open(filepath.Join(global.GetCuurentPath(), "dbcollection"))
+
+	db.DBClassObject = new(db.DbClass)
+	db.DBClassObject.SetConnection(dbConnection)
+}
+
 func main() {
-	log.Println(global.GetCuurentPath())
-	db, _ := bitcask.Open(filepath.Join(global.GetCuurentPath(), "dbcollection"))
-	dbPackage.DbConnection = db
+	defer println("DEFER TESTINGF")
+	initialiseDB()
+	defer db.DBClassObject.CloseConnection()
 	sigs := make(chan os.Signal, 1)
 	done := make(chan bool, 1)
 	LoadEnv()
@@ -68,7 +75,7 @@ func main() {
 
 	server.Log.Debug().Bytes("JWTKEY", global.JWTKEY).Send()
 	err := server.AddHook(new(hooks.MQTTHooks), &hooks.Options{
-		Db: db,
+		DB: db.DBClassObject,
 	})
 	if err != nil {
 		log.Fatal(err)

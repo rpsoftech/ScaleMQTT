@@ -20,30 +20,30 @@ type ScaleConfigData struct {
 	LogEnable          bool   `json:"log_enable" validator:"requried" binding:"requried"`
 }
 
-func AddScaleUserNamePassword(username string, password []byte) error {
-	return DbConnection.Put([]byte(preFixKeyForUsernameAndPassword+username), password)
+func (DBObject *DbClass) AddScaleUserNamePassword(username string, password []byte) error {
+	return DBClassObject.connection.Put([]byte(preFixKeyForUsernameAndPassword+username), password)
 }
 
-func AddScaleConfigData(username string, config ScaleConfigData) (bool, error) {
+func (DBObject *DbClass) AddScaleConfigData(username string, config ScaleConfigData) (bool, error) {
 	stringConfig, err := json.Marshal(config)
 	if err != nil {
 		return false, err
 	}
-	err = DbConnection.Put([]byte(preFixKeyForScaleConfig+username), stringConfig)
+	err = DBClassObject.connection.Put([]byte(preFixKeyForScaleConfig+username), stringConfig)
 	if err != nil {
 		return false, err
 	}
 	return true, nil
 }
 
-func GetScaleConfigData(username string) (config ScaleConfigData, err error) {
-	stringConfig, err := DbConnection.Get([]byte(preFixKeyForUsernameAndPassword + username))
+func (DBObject *DbClass) GetScaleConfigData(username string) (config ScaleConfigData, err error) {
+	stringConfig, err := DBClassObject.connection.Get([]byte(preFixKeyForUsernameAndPassword + username))
 	if err != nil {
 		return
 	}
 	err = json.Unmarshal(stringConfig, &config)
 	return
 }
-func GetPasswordForScale(username string) ([]byte, error) {
-	return DbConnection.Get([]byte(preFixKeyForUsernameAndPassword + username))
+func (DBObject *DbClass) GetPasswordForScale(username string) ([]byte, error) {
+	return DBClassObject.connection.Get([]byte(preFixKeyForUsernameAndPassword + username))
 }

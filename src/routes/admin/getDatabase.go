@@ -8,7 +8,7 @@ import (
 )
 
 func GetAllDataFromDatabase(c *gin.Context) {
-	c.JSON(200, db.TakeBackup())
+	c.JSON(200, db.DBClassObject.TakeBackup())
 }
 
 func GetAllMqttStatus(c *gin.Context) {

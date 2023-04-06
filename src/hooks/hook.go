@@ -3,12 +3,11 @@ package hooks
 import (
 	"bytes"
 	"regexp"
-	dbPackage "rpsoftech/scaleMQTT/src/db"
+	"rpsoftech/scaleMQTT/src/db"
 	"rpsoftech/scaleMQTT/src/global"
 	"strconv"
 	"strings"
 
-	"git.mills.io/prologic/bitcask"
 	"github.com/mochi-co/mqtt/v2"
 	"github.com/mochi-co/mqtt/v2/packets"
 	"github.com/rs/zerolog"
@@ -17,7 +16,7 @@ import (
 type Options struct {
 	mqtt.HookOptions
 	Log *zerolog.Logger // minimal no-alloc logger
-	Db  *bitcask.Bitcask
+	DB  *db.DbClass
 }
 type ClientPacket struct {
 	mqtt.Client
@@ -109,7 +108,7 @@ func (h *MQTTHooks) OnSubscribed(cl *mqtt.Client, pk packets.Packet, reasonCodes
 // OnConnectAuthenticate is called when a user attempts to authenticate with the server.
 func (h *MQTTHooks) OnConnectAuthenticate(cl *mqtt.Client, pk packets.Packet) bool {
 	stringUserName := string(cl.Properties.Username)
-	expectedPassword, readerror := dbPackage.GetPasswordForScale(stringUserName)
+	expectedPassword, readerror := db.DBClassObject.GetPasswordForScale(stringUserName)
 	allowed := readerror == nil && bytes.Equal(pk.Connect.Password, expectedPassword)
 
 	h.Log.Info().Bytes("username", cl.Properties.Username).Bytes("password", pk.Connect.Password).Bytes("expected Password", expectedPassword).Interface("Allowed", allowed).Send()
