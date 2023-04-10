@@ -1,12 +1,19 @@
 package db
 
 import (
+	"path/filepath"
+	"rpsoftech/scaleMQTT/src/global"
 	"strings"
 
 	"git.mills.io/prologic/bitcask"
 )
 
 var DbConnection *bitcask.Bitcask
+
+func init() {
+	db, _ := bitcask.Open(filepath.Join(global.GetCuurentPath(), "dbcollection"))
+	DbConnection = db
+}
 
 func TakeBackup() map[string]map[string]string {
 	data := make(map[string]map[string]string)

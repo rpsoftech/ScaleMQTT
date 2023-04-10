@@ -7,14 +7,12 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"path/filepath"
-	dbPackage "rpsoftech/scaleMQTT/src/db"
+	"rpsoftech/scaleMQTT/src/db"
 	global "rpsoftech/scaleMQTT/src/global"
 	"rpsoftech/scaleMQTT/src/hooks"
 	"rpsoftech/scaleMQTT/src/routes"
 	"syscall"
 
-	"git.mills.io/prologic/bitcask"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/mochi-co/mqtt/v2"
@@ -23,7 +21,6 @@ import (
 )
 
 func LoadEnv() {
-	println(global.GetCuurentPath())
 	if _, err := os.Stat(".env"); err == nil {
 		// path/to/whatever exists
 		godotenv.Load(".env")
@@ -45,9 +42,7 @@ func LoadEnv() {
 }
 
 func main() {
-	log.Println(global.GetCuurentPath())
-	db, _ := bitcask.Open(filepath.Join(global.GetCuurentPath(), "dbcollection"))
-	dbPackage.DbConnection = db
+
 	sigs := make(chan os.Signal, 1)
 	done := make(chan bool, 1)
 	LoadEnv()
@@ -68,7 +63,7 @@ func main() {
 
 	server.Log.Debug().Bytes("JWTKEY", global.JWTKEY).Send()
 	err := server.AddHook(new(hooks.MQTTHooks), &hooks.Options{
-		Db: db,
+		Db: db.DbConnection,
 	})
 	if err != nil {
 		log.Fatal(err)
