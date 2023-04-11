@@ -1,6 +1,9 @@
 package systypes
 
-import "errors"
+import (
+	"errors"
+	"rpsoftech/scaleMQTT/src/validator"
+)
 
 type DivideMultiplyString string
 
@@ -28,7 +31,7 @@ type DevcfgForMqtt struct {
 	MqttPassword       string `json:"mqtt_password" validate:"required" binding:"required"`
 	MqttPublishTopic   string `json:"mqtt_publish_topic" validate:"required" binding:"required"`
 	MqttSubscribeTopic string `json:"mqtt_subscribe_topic" validate:"required" binding:"required"`
-	MqttBrokerPort     int    `json:"mqtt_broker_port" validate:"required" binding:"required"`
+	MqttBrokerPort     int    `json:"mqtt_broker_port" validate:"required,port" binding:"required"`
 	EndChar            string `json:"end_char" validate:"required" binding:"required"`
 	BaudRate           int    `json:"baud_rate" validate:"required" binding:"required"`
 	LogEnable          bool   `json:"log_enable" validate:"required" binding:"required"`
@@ -41,8 +44,9 @@ type ScaleConfigData struct {
 }
 
 func (data *ScaleConfigData) Validate() (valid bool, err error) {
-
-	err = Validator.Struct(data)
+	data.MqttSubscribeTopic = data.MqttUsername + "/WeighingScale/DeviceConfig"
+	data.MqttPublishTopic = data.MqttUsername + "/WeighingScale/SerialRead"
+	err = validator.Validator.Struct(data)
 	if err == nil {
 		valid = true
 	} else {

@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"rpsoftech/scaleMQTT/src/db"
-	"rpsoftech/scaleMQTT/src/systypes"
+	"rpsoftech/scaleMQTT/src/validator"
 
 	"github.com/gin-gonic/gin"
 )
@@ -18,7 +18,7 @@ func AddChangeMqttUserNameAndPassword(c *gin.Context) {
 		return
 	}
 
-	if err := systypes.Validator.Struct(user); err != nil {
+	if err := validator.Validator.Struct(user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}

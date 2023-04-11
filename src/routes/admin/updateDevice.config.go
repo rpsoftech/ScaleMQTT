@@ -9,7 +9,7 @@ import (
 func UpdateDeviceConfig(c *gin.Context) {
 
 	config := systypes.ScaleConfigData{
-		// DivideMultiplyBy: 1,
+		DivideMultiplyBy: 1,
 	}
 	if err := c.ShouldBindJSON(&config); err != nil {
 		c.JSON(400, systypes.BaseResponseFormat{
