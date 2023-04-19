@@ -24,6 +24,7 @@ func AdminRoutes(router *gin.Engine) {
 		adminRouter.GET("/mqttStatus", GetAllMqttStatus)
 		adminRouter.POST("/modifyMqttUserNamePassword", AddChangeMqttUserNameAndPassword)
 		adminRouter.GET("/isLoggedin", IsAdminLoggedIn)
+		adminRouter.POST("/updateConfig", UpdateDeviceConfig)
 		adminRouter.GET("/", func(c *gin.Context) {
 			c.String(http.StatusOK, "Welcome Gin Server")
 		})

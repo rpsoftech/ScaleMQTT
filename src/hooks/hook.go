@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"rpsoftech/scaleMQTT/src/db"
 	"rpsoftech/scaleMQTT/src/global"
+	"rpsoftech/scaleMQTT/src/systypes"
 	"strconv"
 	"strings"
 
@@ -118,7 +119,7 @@ func (h *MQTTHooks) OnConnectAuthenticate(cl *mqtt.Client, pk packets.Packet) bo
 			val.Weight = 0.0
 			val.Count += 1
 		} else {
-			global.MQTTConnectionStatusMap[stringUserName] = &global.MQTTConnectionMeta{
+			global.MQTTConnectionStatusMap[stringUserName] = &systypes.MQTTConnectionMeta{
 				Connected:  true,
 				UserName:   stringUserName,
 				LocationID: "",

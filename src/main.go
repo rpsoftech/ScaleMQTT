@@ -1,63 +1,27 @@
 package main
 
 import (
-	"crypto/rand"
-	"encoding/hex"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"rpsoftech/scaleMQTT/src/db"
 	global "rpsoftech/scaleMQTT/src/global"
 	"rpsoftech/scaleMQTT/src/hooks"
 	"rpsoftech/scaleMQTT/src/routes"
 	"syscall"
 
-	"git.mills.io/prologic/bitcask"
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 	"github.com/mochi-co/mqtt/v2"
 	"github.com/mochi-co/mqtt/v2/listeners"
 	"github.com/rs/zerolog"
 )
 
-func LoadEnv() {
-	println(global.GetCuurentPath())
-	if _, err := os.Stat(".env"); err == nil {
-		// path/to/whatever exists
-		godotenv.Load(".env")
-	} else {
-		godotenv.Load("./../.env")
-	}
-	defaultValue := make([]byte, 128)
-
-	_, err := rand.Read(defaultValue)
-	if err != nil {
-		defaultValue = []byte("thisisjustdefaultvalue")
-	}
-	defaultValueString := hex.EncodeToString(defaultValue)
-	envJWTKeyValue := os.Getenv("JWTKEY")
-	if envJWTKeyValue == "" {
-		envJWTKeyValue = defaultValueString
-	}
-	global.JWTKEY = []byte(envJWTKeyValue)
-}
-
-func initialiseDB() {
-	dbConnection, _ := bitcask.Open(filepath.Join(global.GetCuurentPath(), "dbcollection"))
-
-	db.DBClassObject = new(db.DbClass)
-	db.DBClassObject.SetConnection(dbConnection)
-}
-
 func main() {
 	defer println("DEFER TESTINGF")
-	initialiseDB()
 	defer db.DBClassObject.CloseConnection()
 	sigs := make(chan os.Signal, 1)
 	done := make(chan bool, 1)
-	LoadEnv()
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
 		<-sigs
