@@ -109,9 +109,11 @@ func (h *MQTTHooks) OnSubscribed(cl *mqtt.Client, pk packets.Packet, reasonCodes
 // OnConnectAuthenticate is called when a user attempts to authenticate with the server.
 func (h *MQTTHooks) OnConnectAuthenticate(cl *mqtt.Client, pk packets.Packet) bool {
 	stringUserName := string(cl.Properties.Username)
-	expectedPassword, readerror := db.DBClassObject.GetPasswordForScale(stringUserName)
-	allowed := readerror == nil && bytes.Equal(pk.Connect.Password, expectedPassword)
-	h.Log.Info().Bytes("username", cl.Properties.Username).Bytes("password", pk.Connect.Password).Bytes("expected Password", expectedPassword).Interface("Allowed", allowed).Send()
+	stringId := string(cl.ID)
+	DeviceConfig, readerror := db.DBClassObject.GetScaleConfigData(stringId)
+	allowed := readerror == nil && stringUserName == DeviceConfig.MqttUsername && string(pk.Connect.Password) == DeviceConfig.MqttPassword
+
+	h.Log.Info().Bytes("username", cl.Properties.Username).Bytes("password", pk.Connect.Password).Bytes("expected Password", []byte(DeviceConfig.MqttPassword)).Interface("Allowed", allowed).Send()
 	if allowed {
 		if val, ok := global.MQTTConnectionStatusMap[stringUserName]; ok {
 			val.Connected = true

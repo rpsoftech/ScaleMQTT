@@ -1,12 +1,16 @@
 package systypes
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"rpsoftech/scaleMQTT/src/validator"
 )
 
 type DivideMultiplyString string
 
+const DefaultMQTTDevicePublishTopicSuffix = "WeighingScale/DeviceConfig/up"
+const DefaultMQTTDeviceSubscribeTopicSuffix = "WeighingScale/DeviceConfig/dw"
 const (
 	Divide DivideMultiplyString = "/"
 	Multi  DivideMultiplyString = "*"
@@ -47,9 +51,14 @@ type ScaleConfigDataWithOldDevId struct {
 	OldDevID string `json:"old_dev_id" validate:"required" binding:"required"`
 }
 
+type ChangeDeviceIdData struct {
+	DevID    string `json:"dev_id" validate:"required" binding:"required"`
+	OldDevID string `json:"old_dev_id" validate:"required" binding:"required"`
+}
+
 func (data *ScaleConfigData) Validate() (valid bool, err error) {
-	data.MqttSubscribeTopic = data.MqttUsername + "/WeighingScale/DeviceConfig"
-	data.MqttPublishTopic = data.MqttUsername + "/WeighingScale/SerialRead"
+	data.MqttSubscribeTopic = DefaultMQTTDeviceSubscribeTopicSuffix
+	data.MqttPublishTopic = DefaultMQTTDevicePublishTopicSuffix
 	err = validator.Validator.Struct(data)
 	if err == nil {
 		valid = true
@@ -64,4 +73,12 @@ func (data *ScaleConfigData) Validate() (valid bool, err error) {
 		}
 	}
 	return
+}
+
+func (t *ScaleConfigData) JSON() ([]byte, error) {
+	buffer := &bytes.Buffer{}
+	encoder := json.NewEncoder(buffer)
+	encoder.SetEscapeHTML(false)
+	err := encoder.Encode(t)
+	return buffer.Bytes(), err
 }
