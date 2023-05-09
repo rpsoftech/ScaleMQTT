@@ -19,8 +19,8 @@ var MQTTserver *mqtt.Server
 var MQTTConnectionStatusMap = make(map[string]*systypes.MQTTConnectionMeta)
 var MQTTConnectionWithUidStatusMap = make(map[string]*systypes.MQTTConnectionMeta)
 
-const DefaultMQTTDevicePublishTopicSuffix = systypes.DefaultMQTTDevicePublishTopicSuffix
-const DefaultMQTTDeviceSubscribeTopicSuffix = systypes.DefaultMQTTDeviceSubscribeTopicSuffix
+const DefaultMQTTDevicePublishTopicSuffix = "/" + systypes.DefaultMQTTDevicePublishTopicSuffix
+const DefaultMQTTDeviceSubscribeTopicSuffix = "/" + systypes.DefaultMQTTDeviceSubscribeTopicSuffix
 const RootDefaultDeviceId = "thisisdefaultidforiotdevice"
 
 func init() {

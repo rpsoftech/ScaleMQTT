@@ -11,5 +11,6 @@ type MQTTConnectionMeta struct {
 	UserName   string          `json:"name"`
 	LocationID string          `json:"locationName"`
 	Weight     float64         `json:"weight"`
+	RawWeight  string          `json:"raw_info"`
 	Count      int             `json:"-"`
 }

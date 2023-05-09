@@ -38,6 +38,7 @@ func (h *MQTTHooks) Provides(b byte) bool {
 	return bytes.Contains([]byte{
 		mqtt.OnConnect,
 		mqtt.OnDisconnect,
+		mqtt.OnWillSent,
 		mqtt.OnSubscribed,
 		mqtt.OnSubscribe,
 		mqtt.OnUnsubscribe,
@@ -74,14 +75,16 @@ func (h *MQTTHooks) OnConnect(cl *mqtt.Client, pk packets.Packet) {
 	h.Log.Info().Str("client", cl.ID).Msgf("client connected")
 	h.Log.Info().Interface("Subscription", cl.State.Subscriptions.GetAll()).Send()
 }
+func (h *MQTTHooks) OnWillSent(cl *mqtt.Client, pk packets.Packet) {
+	h.Log.Info().Str("client", cl.ID).Msgf("client Closed")
+}
 
 func (h *MQTTHooks) OnDisconnect(cl *mqtt.Client, err error, expire bool) {
-	if val, ok := global.MQTTConnectionStatusMap[string(cl.Properties.Username)]; ok {
+	if val, ok := global.MQTTConnectionWithUidStatusMap[string(cl.ID)]; ok {
 		val.Count -= 1
 		if val.Count <= 0 {
 			val.Connected = false
 		}
-		// global.MQTTConnectionStatusMap[string(cl.Properties.Username)] = val
 	}
 	h.Log.Info().Str("client", cl.ID).Bool("expire", expire).Err(err).Msg("client disconnected")
 }
@@ -92,8 +95,8 @@ func (h *MQTTHooks) OnUnsubscribe(cl *mqtt.Client, pk packets.Packet) packets.Pa
 }
 
 func (h *MQTTHooks) OnACLCheck(cl *mqtt.Client, topic string, write bool) bool {
-	allowed := strings.HasPrefix(topic, string(cl.Properties.Username)+"/")
-	h.Log.Info().Str("client", string(cl.Properties.Username)).Interface("topic", topic).Interface("Allowed", allowed).Send()
+	allowed := strings.HasPrefix(topic, string(cl.ID)+"/")
+	h.Log.Info().Str("client", string(cl.ID)).Interface("topic", topic).Interface("Allowed", allowed).Send()
 	return allowed
 }
 func (h *MQTTHooks) OnSubscribe(cl *mqtt.Client, pk packets.Packet) packets.Packet {
@@ -113,7 +116,7 @@ func (h *MQTTHooks) OnConnectAuthenticate(cl *mqtt.Client, pk packets.Packet) bo
 	DeviceConfig, readerror := db.DBClassObject.GetScaleConfigData(stringId)
 	allowed := readerror == nil && stringUserName == DeviceConfig.MqttUsername && string(pk.Connect.Password) == DeviceConfig.MqttPassword
 
-	h.Log.Info().Bytes("username", cl.Properties.Username).Bytes("password", pk.Connect.Password).Bytes("expected Password", []byte(DeviceConfig.MqttPassword)).Interface("Allowed", allowed).Send()
+	h.Log.Info().Str("username", stringUserName).Bytes("password", pk.Connect.Password).Bytes("expected Password", []byte(DeviceConfig.MqttPassword)).Interface("Allowed", allowed).Send()
 	if allowed {
 		if val, ok := global.MQTTConnectionStatusMap[stringUserName]; ok {
 			val.Connected = true
@@ -122,6 +125,7 @@ func (h *MQTTHooks) OnConnectAuthenticate(cl *mqtt.Client, pk packets.Packet) bo
 		} else {
 			global.MQTTConnectionStatusMap[stringUserName] = &systypes.MQTTConnectionMeta{
 				Connected:  true,
+				Config:     DeviceConfig,
 				UserName:   stringUserName,
 				LocationID: "",
 				Weight:     0.0,
@@ -141,21 +145,21 @@ func (h *MQTTHooks) OnUnsubscribed(cl *mqtt.Client, pk packets.Packet) {
 
 func (h *MQTTHooks) OnPublish(cl *mqtt.Client, pk packets.Packet) (packets.Packet, error) {
 	h.Log.Info().Str("client", cl.ID).Str("payload", string(pk.Payload)).Msg("received from client")
-
-	// pkx := pk
-	// if string(pk.Payload) == "hello" {
-	// 	pkx.Payload = []byte("hello world")
-	// 	h.Log.Info().Str("client", cl.ID).Str("payload", string(pkx.Payload)).Msg("received modified packet from client")
-	// }
-	if strings.HasSuffix(pk.TopicName, "WeighingScale/SerialRead") {
-		stringPayload := string(pk.Payload)
-		negative := strings.Contains(stringPayload, "\\f")
-		i, err := strconv.ParseFloat(NoNumaricRegEx.ReplaceAllString(stringPayload, ""), 32)
-		if err != nil {
-			h.Log.Error().Msg(err.Error())
-		} else {
-			if val, ok := global.MQTTConnectionStatusMap[string(cl.Properties.Username)]; ok {
-				f := i / 10
+	if strings.HasSuffix(pk.TopicName, "SerialRead") {
+		if val, ok := global.MQTTConnectionWithUidStatusMap[string(cl.ID)]; ok {
+			stringPayload := string(pk.Payload)
+			val.RawWeight = stringPayload
+			negative := strings.Contains(stringPayload, val.Config.NegativeChar)
+			i, err := strconv.ParseFloat(NoNumaricRegEx.ReplaceAllString(stringPayload, ""), 32)
+			if err != nil {
+				h.Log.Error().Msg(err.Error())
+			} else {
+				f := 0.0
+				if val.Config.DivideMultiply == systypes.Divide {
+					f = i / float64(val.Config.DivideMultiplyBy)
+				} else if val.Config.DivideMultiply == systypes.Multi {
+					f = i * float64(val.Config.DivideMultiplyBy)
+				}
 				if negative {
 					f = f * -1
 				}

@@ -12,6 +12,7 @@ func UpdateDeviceConfig(c *gin.Context) {
 
 	config := systypes.ScaleConfigData{
 		DivideMultiplyBy: 1,
+		NegativeChar:     "\\f",
 	}
 	if err := c.ShouldBindJSON(&config); err != nil {
 		c.JSON(400, systypes.BaseResponseFormat{
@@ -27,7 +28,6 @@ func UpdateDeviceConfig(c *gin.Context) {
 		})
 		return
 	}
-	// config.
 	byteConfig, err := config.JSON()
 	if err != nil {
 		c.JSON(400, systypes.BaseResponseFormat{
@@ -44,6 +44,11 @@ func UpdateDeviceConfig(c *gin.Context) {
 		})
 		return
 	}
-	global.MQTTserver.Publish(config.DevID+global.DefaultMQTTDeviceSubscribeTopicSuffix, byteConfig, true, 2)
-	c.JSON(200, gin.H{"s": string(byteConfig)})
+	if val, ok := global.MQTTConnectionWithUidStatusMap[config.DevID]; ok {
+		val.Config = config
+	}
+	topic := config.DevID + global.DefaultMQTTDeviceSubscribeTopicSuffix
+	global.MQTTserver.Publish(topic, []byte("{\"devcfg\":\""+string(byteConfig)+"\"}"), true, 2)
+	global.MQTTserver.Publish(topic, []byte("{\"mqttcfg\":\""+string(byteConfig)+"\"}"), true, 2)
+	c.String(200, string(byteConfig))
 }

@@ -26,31 +26,31 @@ func (s DivideMultiplyString) String() string {
 	return "unknown"
 }
 
+type MqttBrokerConfig struct {
+	MqttBrokerURI          string `json:"broker_uri" validate:"required" binding:"required"`
+	MqttUsername           string `json:"mqtt_username" validate:"required" binding:"required"`
+	MqttPassword           string `json:"mqtt_password" validate:"required" binding:"required"`
+	MqttPublishTopic       string `json:"pub_topic" validate:"required" binding:"required"`
+	MqttSerialPublishTopic string `json:"serial_pub_topic" validate:"required" binding:"required"`
+	MqttSubscribeTopic     string `json:"sub_topic" validate:"required" binding:"required"`
+	MqttBrokerPort         int    `json:"broker_port" validate:"required,port" binding:"required"`
+}
 type DevcfgForMqtt struct {
-	DevID              string `json:"dev_id" validate:"required" binding:"required"`
-	WifiSsid           string `json:"wifi_ssid" validate:"required" binding:"required"`
-	WifiPassword       string `json:"wifi_password" validate:"required" binding:"required"`
-	MqttBrokerURI      string `json:"mqtt_broker_uri" validate:"required" binding:"required"`
-	MqttUsername       string `json:"mqtt_username" validate:"required" binding:"required"`
-	MqttPassword       string `json:"mqtt_password" validate:"required" binding:"required"`
-	MqttPublishTopic   string `json:"mqtt_publish_topic" validate:"required" binding:"required"`
-	MqttSubscribeTopic string `json:"mqtt_subscribe_topic" validate:"required" binding:"required"`
-	MqttBrokerPort     int    `json:"mqtt_broker_port" validate:"required,port" binding:"required"`
-	EndChar            string `json:"end_char" validate:"required" binding:"required"`
-	BaudRate           int    `json:"baud_rate" validate:"required" binding:"required"`
-	LogEnable          bool   `json:"log_enable" validate:"required" binding:"required"`
+	MqttBrokerConfig
+	DevID        string `json:"dev_id" validate:"required" binding:"required"`
+	WifiSsid     string `json:"wifi_ssid" validate:"required" binding:"required"`
+	WifiPassword string `json:"wifi_password" validate:"required" binding:"required"`
+	EndChar      string `json:"end_char" validate:"required" binding:"required"`
+	BaudRate     int    `json:"baud_rate" validate:"required" binding:"required"`
+	LogEnable    bool   `json:"log_enable" validate:"required" binding:"required"`
 }
 
 type ScaleConfigData struct {
 	DevcfgForMqtt
 	DivideMultiply   DivideMultiplyString `json:"divide_multiply" validate:"required" binding:"required"`
 	DivideMultiplyBy int                  `json:"divide_multiply_by,omitempty"`
+	NegativeChar     string               `json:"negative_char"`
 }
-type ScaleConfigDataWithOldDevId struct {
-	ScaleConfigData
-	OldDevID string `json:"old_dev_id" validate:"required" binding:"required"`
-}
-
 type ChangeDeviceIdData struct {
 	DevID    string `json:"dev_id" validate:"required" binding:"required"`
 	OldDevID string `json:"old_dev_id" validate:"required" binding:"required"`
@@ -59,6 +59,9 @@ type ChangeDeviceIdData struct {
 func (data *ScaleConfigData) Validate() (valid bool, err error) {
 	data.MqttSubscribeTopic = DefaultMQTTDeviceSubscribeTopicSuffix
 	data.MqttPublishTopic = DefaultMQTTDevicePublishTopicSuffix
+	if data.NegativeChar == "" {
+		data.NegativeChar = "\\f"
+	}
 	err = validator.Validator.Struct(data)
 	if err == nil {
 		valid = true
