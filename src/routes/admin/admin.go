@@ -25,9 +25,10 @@ func AdminRoutes(router *gin.Engine) {
 		adminRouter.GET("/databaseSnapshot", GetAllDataFromDatabase)
 		adminRouter.GET("/mqttStatus", GetAllMqttStatus)
 		adminRouter.POST("/changeDeviceID", ChangeDeviceID)
+		adminRouter.POST("/generateNewToken", GenerateToken)
 		adminRouter.GET("/isLoggedin", IsAdminLoggedIn)
 		adminRouter.POST("/updateConfig", UpdateDeviceConfig)
-		adminRouter.GET("/gen_new_dev_id", func(c *gin.Context) {
+		adminRouter.GET("/genNewDevId", func(c *gin.Context) {
 			id := uuid.New()
 			c.JSON(http.StatusOK, gin.H{"id": strings.ReplaceAll(id.String(), "-", "")})
 		})

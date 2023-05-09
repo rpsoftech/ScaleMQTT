@@ -1,7 +1,6 @@
 package systypes
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"rpsoftech/scaleMQTT/src/validator"
@@ -79,9 +78,5 @@ func (data *ScaleConfigData) Validate() (valid bool, err error) {
 }
 
 func (t *ScaleConfigData) JSON() ([]byte, error) {
-	buffer := &bytes.Buffer{}
-	encoder := json.NewEncoder(buffer)
-	encoder.SetEscapeHTML(false)
-	err := encoder.Encode(t)
-	return buffer.Bytes(), err
+	return json.Marshal(t)
 }
