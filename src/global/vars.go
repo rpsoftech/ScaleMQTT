@@ -14,6 +14,7 @@ import (
 var JWTKEY []byte
 var Logger *zerolog.Logger
 var MQTTConnectionStatusMap = make(map[string]*systypes.MQTTConnectionMeta)
+var MQTTConnectionWithUidStatusMap = make(map[string]*systypes.MQTTConnectionMeta)
 
 func init() {
 	LoadEnv()

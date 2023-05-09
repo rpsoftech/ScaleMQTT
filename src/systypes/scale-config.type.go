@@ -42,6 +42,10 @@ type ScaleConfigData struct {
 	DivideMultiply   DivideMultiplyString `json:"divide_multiply" validate:"required" binding:"required"`
 	DivideMultiplyBy int                  `json:"divide_multiply_by,omitempty"`
 }
+type ScaleConfigDataWithOldDevId struct {
+	ScaleConfigData
+	OldDevID string `json:"old_dev_id" validate:"required" binding:"required"`
+}
 
 func (data *ScaleConfigData) Validate() (valid bool, err error) {
 	data.MqttSubscribeTopic = data.MqttUsername + "/WeighingScale/DeviceConfig"

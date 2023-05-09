@@ -111,7 +111,6 @@ func (h *MQTTHooks) OnConnectAuthenticate(cl *mqtt.Client, pk packets.Packet) bo
 	stringUserName := string(cl.Properties.Username)
 	expectedPassword, readerror := db.DBClassObject.GetPasswordForScale(stringUserName)
 	allowed := readerror == nil && bytes.Equal(pk.Connect.Password, expectedPassword)
-
 	h.Log.Info().Bytes("username", cl.Properties.Username).Bytes("password", pk.Connect.Password).Bytes("expected Password", expectedPassword).Interface("Allowed", allowed).Send()
 	if allowed {
 		if val, ok := global.MQTTConnectionStatusMap[stringUserName]; ok {
@@ -126,6 +125,9 @@ func (h *MQTTHooks) OnConnectAuthenticate(cl *mqtt.Client, pk packets.Packet) bo
 				Weight:     0.0,
 				Count:      1,
 			}
+		}
+		if val, ok := global.MQTTConnectionStatusMap[stringUserName]; ok {
+			global.MQTTConnectionWithUidStatusMap[cl.ID] = val
 		}
 	}
 	return allowed
