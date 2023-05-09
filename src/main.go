@@ -31,12 +31,11 @@ func main() {
 	r := gin.Default()
 	routes.AddRoutes(r)
 	server := mqtt.New(nil)
-
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 	l := server.Log.Level(zerolog.DebugLevel)
 	server.Log = &l
 	global.Logger = &l
-
+	global.MQTTserver = server
 	server.Log.Debug().Bytes("JWTKEY", global.JWTKEY).Send()
 	err := server.AddHook(new(hooks.MQTTHooks), &hooks.Options{
 		DB: db.DBClassObject,

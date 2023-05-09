@@ -2,10 +2,12 @@ package routes
 
 import (
 	"net/http"
+	"strings"
 
 	"rpsoftech/scaleMQTT/src/middlerware"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type LoginResponse struct {
@@ -22,9 +24,13 @@ func AdminRoutes(router *gin.Engine) {
 		adminRouter.POST("/addNewAdmin", AddNewAdminUser)
 		adminRouter.GET("/databaseSnapshot", GetAllDataFromDatabase)
 		adminRouter.GET("/mqttStatus", GetAllMqttStatus)
-		adminRouter.POST("/modifyMqttUserNamePassword", AddChangeMqttUserNameAndPassword)
+		adminRouter.POST("/changeDeviceID", ChangeDeviceID)
 		adminRouter.GET("/isLoggedin", IsAdminLoggedIn)
 		adminRouter.POST("/updateConfig", UpdateDeviceConfig)
+		adminRouter.GET("/gen_new_dev_id", func(c *gin.Context) {
+			id := uuid.New()
+			c.JSON(http.StatusOK, gin.H{"id": strings.ReplaceAll(id.String(), "-", "")})
+		})
 		adminRouter.GET("/", func(c *gin.Context) {
 			c.String(http.StatusOK, "Welcome Gin Server")
 		})

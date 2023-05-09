@@ -8,12 +8,19 @@ import (
 	"rpsoftech/scaleMQTT/src/systypes"
 
 	"github.com/joho/godotenv"
+	"github.com/mochi-co/mqtt/v2"
 	"github.com/rs/zerolog"
 )
 
 var JWTKEY []byte
 var Logger *zerolog.Logger
+var MQTTserver *mqtt.Server
+
 var MQTTConnectionStatusMap = make(map[string]*systypes.MQTTConnectionMeta)
+
+const DefaultMQTTDevicePublishTopicSuffix = systypes.DefaultMQTTDevicePublishTopicSuffix
+const DefaultMQTTDeviceSubscribeTopicSuffix = systypes.DefaultMQTTDeviceSubscribeTopicSuffix
+const RootDefaultDeviceId = "thisisdefaultidforiotdevice"
 
 func init() {
 	LoadEnv()

@@ -7,29 +7,11 @@ import (
 
 const preFixKeyForUsernameAndPassword = "scaleusernamepass/"
 
-// const preFixKeyForUsernameAndPassword = "scaleconfig/"
+const preFixForOldToNewDeviceId = "scaleDeviceIdMap/"
 const preFixKeyForScaleConfig = "scaleconfig/"
 
-func (DBObject *DbClass) AddScaleUserNamePassword(username string, password []byte) error {
-	return DBClassObject.connection.Put([]byte(preFixKeyForUsernameAndPassword+username), password)
-}
-
-func (DBObject *DbClass) AddScaleConfigData(username string, config systypes.ScaleConfigData) (bool, error) {
-	stringConfig, err := json.Marshal(config)
-
-	if err != nil {
-		return false, err
-	}
-
-	err = DBClassObject.connection.Put([]byte(preFixKeyForScaleConfig+username), stringConfig)
-	if err != nil {
-		return false, err
-	}
-	return true, nil
-}
-
-func (DBObject *DbClass) GetScaleConfigData(username string) (config systypes.ScaleConfigData, err error) {
-	stringConfig, err := DBClassObject.connection.Get([]byte(preFixKeyForUsernameAndPassword + username))
+func (DBObject *DbClass) GetScaleConfigData(devID string) (config systypes.ScaleConfigData, err error) {
+	stringConfig, err := DBClassObject.connection.Get([]byte(preFixKeyForScaleConfig + devID))
 	if err != nil {
 		return
 	}
@@ -40,6 +22,26 @@ func (DBObject *DbClass) GetScaleConfigData(username string) (config systypes.Sc
 	_, err = config.Validate()
 	return
 }
-func (DBObject *DbClass) GetPasswordForScale(username string) ([]byte, error) {
+func (DBObject *DbClass) SetScaleConfigData(devID string, config systypes.ScaleConfigData) (err error) {
+	var stringConfig []byte
+	stringConfig, err = config.JSON()
+	if err != nil {
+		return
+	}
+	err = DBClassObject.connection.Put([]byte(preFixKeyForScaleConfig+devID), stringConfig)
+	if err != nil {
+		return
+	}
+	return
+}
+
+//	func (DBObject *DbClass) GetPasswordForScale(username string) ([]byte, error) {
+//		return DBClassObject.connection.Get([]byte(preFixKeyForUsernameAndPassword + username))
+//	}
+func (DBObject *DbClass) SetChanegedDeviceId(OldDevID string, NewDeviceId string) error {
+	return DBClassObject.connection.Put([]byte(preFixForOldToNewDeviceId+OldDevID), []byte(NewDeviceId))
+}
+
+func (DBObject *DbClass) GetChanegedDeviceId(username string) ([]byte, error) {
 	return DBClassObject.connection.Get([]byte(preFixKeyForUsernameAndPassword + username))
 }
