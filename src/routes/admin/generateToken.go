@@ -29,5 +29,5 @@ func GenerateToken(c *gin.Context) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, _ := token.SignedString(global.JWTKEY)
 
-	c.String(http.StatusOK, tokenString)
+	c.JSON(http.StatusOK, gin.H{"token": tokenString, "dev_id": reqBody.DevId})
 }
