@@ -48,7 +48,7 @@ func UpdateDeviceConfig(c *gin.Context) {
 		val.Config = config
 	}
 	topic := config.DevID + global.DefaultMQTTDeviceSubscribeTopicSuffix
-	global.MQTTserver.Publish(topic, []byte("{\"devcfg\":\""+string(byteConfig)+"\"}"), true, 2)
-	global.MQTTserver.Publish(topic, []byte("{\"mqttcfg\":\""+string(byteConfig)+"\"}"), true, 2)
+	global.MQTTserver.Publish(topic, []byte("{\"devcfg\":"+string(byteConfig)+"}"), false, 2)
+	global.MQTTserver.Publish(topic, []byte("{\"mqttcfg\":"+string(byteConfig)+"}"), false, 2)
 	c.String(200, string(byteConfig))
 }

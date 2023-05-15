@@ -51,6 +51,10 @@ func ChangeDeviceID(c *gin.Context) {
 			return
 		}
 	}
-	global.MQTTserver.Publish(config.OldDevID+global.DefaultMQTTDeviceSubscribeTopicSuffix, byteConfig, true, 2)
+	println(config.OldDevID + global.DefaultMQTTDeviceSubscribeTopicSuffix)
+	global.MQTTserver.Publish(config.OldDevID+global.DefaultMQTTDeviceSubscribeTopicSuffix, []byte("{\"devcfg\":"+string(byteConfig)+"}"), true, 2)
+	global.MQTTserver.Publish(config.OldDevID+global.DefaultMQTTDeviceSubscribeTopicSuffix, []byte("{\"mqttcfg\":"+string(byteConfig)+"}"), true, 2)
+	global.MQTTserver.Publish(config.DevID+global.DefaultMQTTDeviceSubscribeTopicSuffix, []byte("{\"devcfg\":"+string(byteConfig)+"}"), true, 2)
+	global.MQTTserver.Publish(config.DevID+global.DefaultMQTTDeviceSubscribeTopicSuffix, []byte("{\"mqttcfg\":"+string(byteConfig)+"}"), true, 2)
 	c.JSON(200, config)
 }

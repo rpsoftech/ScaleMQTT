@@ -25,6 +25,7 @@ func AdminRoutes(router *gin.Engine) {
 		adminRouter.GET("/databaseSnapshot", GetAllDataFromDatabase)
 		adminRouter.GET("/mqttStatus", GetAllMqttStatus)
 		adminRouter.POST("/changeDeviceID", ChangeDeviceID)
+		adminRouter.POST("/generateNewToken", GenerateToken)
 		adminRouter.GET("/isLoggedin", IsAdminLoggedIn)
 		adminRouter.POST("/updateConfig", UpdateDeviceConfig)
 		adminRouter.GET("/genNewDevId", func(c *gin.Context) {
