@@ -14,9 +14,18 @@ func GetAllDataFromDatabase(c *gin.Context) {
 
 func GetAllMqttStatus(c *gin.Context) {
 	if val, exist := c.GetQuery("GetAll"); exist && val == "true" {
+		// global.MQTTConnectionWithUidStatusMap
+		for _, v := range global.MQTTConnectionWithUidStatusMap {
+			if v.Cl.Closed() {
+				v.Connected = false
+			}
+		}
 		c.JSON(200, global.MQTTConnectionWithUidStatusMap)
 	} else if val, exist := c.GetQuery("username"); exist {
 		if v, ok := global.MQTTConnectionWithUidStatusMap[val]; ok {
+			if v.Cl.Closed() {
+				v.Connected = false
+			}
 			c.JSON(200, v)
 		} else {
 			c.String(400, "Not Connected")
@@ -38,6 +47,9 @@ func GetScaleData(c *gin.Context) {
 		if val.Connected == false {
 			c.String(400, "Not Connected")
 			return
+		}
+		if val.Cl.Closed() {
+			val.Connected = false
 		}
 		c.JSON(200, val)
 	} else {

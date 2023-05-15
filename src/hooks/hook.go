@@ -123,11 +123,13 @@ func (h *MQTTHooks) OnConnectAuthenticate(cl *mqtt.Client, pk packets.Packet) bo
 			val.Connected = true
 			val.Weight = 0.0
 			val.Count += 1
+			val.Cl = cl
 		} else {
 			global.MQTTConnectionStatusMap[stringUserName] = &systypes.MQTTConnectionMeta{
 				Connected:  true,
 				Config:     DeviceConfig,
 				UserName:   stringUserName,
+				Cl:         cl,
 				LocationID: "",
 				Weight:     0.0,
 				Count:      1,
