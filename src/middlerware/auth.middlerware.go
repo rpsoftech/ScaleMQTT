@@ -20,7 +20,7 @@ func (h *UserClaims) IsAdmin() bool {
 	return h.Role == "admin"
 }
 
-func JwtAuthMiddleware() gin.HandlerFunc {
+func JwtAuthMiddleware(isAdmin bool) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tokenString := strings.Split(c.GetHeader("Authorization"), " ")[1]
 		if tokenString == "" {
@@ -44,7 +44,10 @@ func JwtAuthMiddleware() gin.HandlerFunc {
 		}
 
 		if claims, ok := token.Claims.(*UserClaims); ok && token.Valid {
-			// return claims, nil
+			if isAdmin && claims.IsAdmin() == false {
+				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid Token Value"})
+				return
+			}
 			c.Set("User", claims)
 		} else {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid Token Value"})

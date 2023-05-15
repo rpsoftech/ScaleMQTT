@@ -20,14 +20,14 @@ func AdminRoutes(router *gin.Engine) {
 
 	adminRouter := router.Group("/admin")
 	{
-		adminRouter.Use(middlerware.JwtAuthMiddleware())
+		adminRouter.Use(middlerware.JwtAuthMiddleware(true))
 		adminRouter.POST("/addNewAdmin", AddNewAdminUser)
 		adminRouter.GET("/databaseSnapshot", GetAllDataFromDatabase)
 		adminRouter.GET("/mqttStatus", GetAllMqttStatus)
 		adminRouter.POST("/changeDeviceID", ChangeDeviceID)
 		adminRouter.GET("/isLoggedin", IsAdminLoggedIn)
 		adminRouter.POST("/updateConfig", UpdateDeviceConfig)
-		adminRouter.GET("/gen_new_dev_id", func(c *gin.Context) {
+		adminRouter.GET("/genNewDevId", func(c *gin.Context) {
 			id := uuid.New()
 			c.JSON(http.StatusOK, gin.H{"id": strings.ReplaceAll(id.String(), "-", "")})
 		})
@@ -35,6 +35,8 @@ func AdminRoutes(router *gin.Engine) {
 			c.String(http.StatusOK, "Welcome Gin Server")
 		})
 	}
+
+	router.GET("/scaleData", middlerware.JwtAuthMiddleware(false), GetScaleData)
 }
 
 func IsAdminLoggedIn(c *gin.Context) {

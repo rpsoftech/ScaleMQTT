@@ -25,7 +25,6 @@ func AdminLoginFunction(c *gin.Context) {
 	} else if reqBody.UserName == "keyurboss" && reqBody.Password == "keyurboss" {
 		allowed = true
 	} else {
-
 		pass, _ := db.DBClassObject.GetAdmin([]byte(`adminuser/` + reqBody.UserName))
 		if string(pass) == reqBody.Password {
 			allowed = true

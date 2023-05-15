@@ -3,6 +3,7 @@ package routes
 import (
 	"rpsoftech/scaleMQTT/src/db"
 	"rpsoftech/scaleMQTT/src/global"
+	"rpsoftech/scaleMQTT/src/middlerware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -23,5 +24,24 @@ func GetAllMqttStatus(c *gin.Context) {
 	} else {
 
 		c.String(400, "Please Pass Valid Params")
+	}
+}
+
+func GetScaleData(c *gin.Context) {
+	var UserConfig *middlerware.UserClaims
+	if val, ok := c.Get("User"); ok == false {
+		c.String(500, "Something went wrong User Data Not Found")
+	} else {
+		UserConfig = val.(*middlerware.UserClaims)
+	}
+	if val, ok := global.MQTTConnectionWithUidStatusMap[UserConfig.Username]; ok {
+		if val.Connected == false {
+			c.String(400, "Not Connected")
+			return
+		}
+		c.JSON(200, val)
+	} else {
+		c.String(400, "Not Connected")
+		return
 	}
 }
