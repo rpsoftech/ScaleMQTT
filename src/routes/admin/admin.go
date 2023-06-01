@@ -28,6 +28,7 @@ func AdminRoutes(router *gin.Engine) {
 		adminRouter.POST("/generateNewToken", GenerateToken)
 		adminRouter.GET("/isLoggedin", IsAdminLoggedIn)
 		adminRouter.POST("/updateConfig", UpdateDeviceConfig)
+		adminRouter.POST("/addConfig", AddDeviceConfig)
 		adminRouter.GET("/genNewDevId", func(c *gin.Context) {
 			id := uuid.New()
 			c.JSON(http.StatusOK, gin.H{"id": strings.ReplaceAll(id.String(), "-", "")})

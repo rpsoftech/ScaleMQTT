@@ -4,17 +4,18 @@ import (
 	"rpsoftech/scaleMQTT/src/db"
 	"rpsoftech/scaleMQTT/src/global"
 	"rpsoftech/scaleMQTT/src/systypes"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 )
 
-func UpdateDeviceConfig(c *gin.Context) {
+type DevIdStruct struct {
+	DevId string `json:"dev_id" validate:"required" `
+}
 
-	config := systypes.ScaleConfigData{
-		DivideMultiplyBy: 1,
-		NegativeChar:     "\\f",
-	}
-	if err := c.ShouldBindJSON(&config); err != nil {
+func ValidateDeviceConfigAndSave(c *gin.Context, config *systypes.ScaleConfigData) {
+	if err := c.ShouldBindBodyWith(config, binding.JSON); err != nil {
 		c.JSON(400, systypes.BaseResponseFormat{
 			Success: false,
 			Error:   err.Error(),
@@ -48,7 +49,57 @@ func UpdateDeviceConfig(c *gin.Context) {
 		val.Config = config
 	}
 	topic := config.DevID + global.DefaultMQTTDeviceSubscribeTopicSuffix
-	global.MQTTserver.Publish(topic, []byte("{\"devcfg\":"+string(byteConfig)+"}"), false, 2)
-	global.MQTTserver.Publish(topic, []byte("{\"mqttcfg\":"+string(byteConfig)+"}"), false, 2)
+	go func(topic string, byteConfig string) {
+		time.Sleep(100 * time.Millisecond)
+		global.MQTTserver.Publish(topic, []byte("{\"devcfg\":"+byteConfig+"}"), false, 2)
+		time.Sleep(100 * time.Millisecond)
+		global.MQTTserver.Publish(topic, []byte("{\"mqttcfg\":"+byteConfig+"}"), false, 2)
+	}(topic, string(byteConfig))
 	c.String(200, string(byteConfig))
+}
+
+func UpdateDeviceConfig(c *gin.Context) {
+	dev := DevIdStruct{}
+	if err := c.ShouldBindBodyWith(&dev, binding.JSON); err != nil {
+		c.JSON(400, systypes.BaseResponseFormat{
+			Success: false,
+			Error:   "Please Pass Valid Device Id",
+		})
+		return
+	}
+	config, err := db.DBClassObject.GetScaleConfigData(dev.DevId)
+	if err != nil {
+		c.JSON(400, systypes.BaseResponseFormat{
+			Success: false,
+			Error:   "Please Use Valid Device Id,Data Does not exitst",
+		})
+		return
+	}
+	ValidateDeviceConfigAndSave(c, &config)
+}
+
+func AddDeviceConfig(c *gin.Context) {
+	dev := DevIdStruct{}
+	if err := c.ShouldBindBodyWith(&dev, binding.JSON); err != nil {
+		c.JSON(400, systypes.BaseResponseFormat{
+			Success: false,
+			Error:   "Please Pass Valid Device Id",
+		})
+		return
+	}
+	if _, err := db.DBClassObject.GetScaleConfigData(dev.DevId); err == nil {
+		c.JSON(400, systypes.BaseResponseFormat{
+			Success: false,
+			Error:   "Please Use new Device Id,Data exists",
+		})
+		return
+	}
+	config := systypes.ScaleConfigData{
+		DivideMultiplyBy: 1,
+		NegativeChar:     "\\f",
+		DevcfgForMqtt: systypes.DevcfgForMqtt{
+			LogEnable: false,
+		},
+	}
+	ValidateDeviceConfigAndSave(c, &config)
 }

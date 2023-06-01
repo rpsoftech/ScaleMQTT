@@ -22,7 +22,7 @@ func (DBObject *DbClass) GetScaleConfigData(devID string) (config systypes.Scale
 	_, err = config.Validate()
 	return
 }
-func (DBObject *DbClass) SetScaleConfigData(devID string, config systypes.ScaleConfigData) (err error) {
+func (DBObject *DbClass) SetScaleConfigData(devID string, config *systypes.ScaleConfigData) (err error) {
 	var stringConfig []byte
 	stringConfig, err = config.JSON()
 	if err != nil {

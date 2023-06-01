@@ -8,12 +8,12 @@ type BaseResponseFormat struct {
 }
 
 type MQTTConnectionMeta struct {
-	Cl         *mqtt.Client    `json:"-"`
-	Config     ScaleConfigData `json:"-"`
-	Connected  bool            `json:"connected"`
-	UserName   string          `json:"name"`
-	LocationID string          `json:"locationName"`
-	Weight     float64         `json:"weight"`
-	RawWeight  string          `json:"raw_info"`
-	Count      int             `json:"-"`
+	Cl         *mqtt.Client     `json:"-"`
+	Config     *ScaleConfigData `json:"-"`
+	Connected  bool             `json:"connected"`
+	UserName   string           `json:"name"`
+	LocationID string           `json:"locationName"`
+	Weight     float64          `json:"weight"`
+	RawWeight  string           `json:"raw_info"`
+	Count      int              `json:"-"`
 }

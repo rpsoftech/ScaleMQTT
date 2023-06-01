@@ -41,7 +41,7 @@ type DevcfgForMqtt struct {
 	WifiPassword string `json:"wifi_password" validate:"required" binding:"required"`
 	EndChar      string `json:"end_char" validate:"required" binding:"required"`
 	BaudRate     int    `json:"baud_rate" validate:"required" binding:"required"`
-	LogEnable    bool   `json:"log_enable" validate:"required" binding:"required"`
+	LogEnable    bool   `json:"log_enable"`
 }
 
 type ScaleConfigData struct {
