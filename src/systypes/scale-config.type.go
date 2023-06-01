@@ -59,7 +59,7 @@ func (data *ScaleConfigData) Validate() (valid bool, err error) {
 	data.MqttSubscribeTopic = DefaultMQTTDeviceSubscribeTopicSuffix
 	data.MqttPublishTopic = DefaultMQTTDevicePublishTopicSuffix
 	if data.NegativeChar == "" {
-		data.NegativeChar = "\\f"
+		data.NegativeChar = "\f"
 	}
 	err = validator.Validator.Struct(data)
 	if err == nil {
