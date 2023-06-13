@@ -94,13 +94,7 @@ func AddDeviceConfig(c *gin.Context) {
 			LogEnable: false,
 		},
 	}
-	if configFromDb, err := db.DBClassObject.GetScaleConfigData(dev.DevId); err == nil {
-		c.JSON(400, systypes.BaseResponseFormat{
-			Success: false,
-			Error:   "Please Use new Device Id, Data exists",
-		})
-		return
-	} else {
+	if configFromDb, err := db.DBClassObject.GetScaleConfigData(dev.DevId); err != nil {
 		config = configFromDb
 	}
 	ValidateDeviceConfigAndSave(c, &config)
