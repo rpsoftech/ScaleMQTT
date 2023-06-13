@@ -87,19 +87,21 @@ func AddDeviceConfig(c *gin.Context) {
 		})
 		return
 	}
-	// if _, err := db.DBClassObject.GetScaleConfigData(dev.DevId); err == nil {
-	// 	c.JSON(400, systypes.BaseResponseFormat{
-	// 		Success: false,
-	// 		Error:   "Please Use new Device Id, Data exists",
-	// 	})
-	// 	return
-	// }
 	config := systypes.ScaleConfigData{
 		DivideMultiplyBy: 1,
 		NegativeChar:     "\f",
 		DevcfgForMqtt: systypes.DevcfgForMqtt{
 			LogEnable: false,
 		},
+	}
+	if configFromDb, err := db.DBClassObject.GetScaleConfigData(dev.DevId); err == nil {
+		c.JSON(400, systypes.BaseResponseFormat{
+			Success: false,
+			Error:   "Please Use new Device Id, Data exists",
+		})
+		return
+	} else {
+		config = configFromDb
 	}
 	ValidateDeviceConfigAndSave(c, &config)
 }
