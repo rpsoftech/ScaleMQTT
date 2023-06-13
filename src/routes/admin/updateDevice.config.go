@@ -87,15 +87,15 @@ func AddDeviceConfig(c *gin.Context) {
 		})
 		return
 	}
-	config := systypes.ScaleConfigData{
+	config := &systypes.ScaleConfigData{
 		DivideMultiplyBy: 1,
 		NegativeChar:     "\f",
 		DevcfgForMqtt: systypes.DevcfgForMqtt{
 			LogEnable: false,
 		},
 	}
-	if configFromDb, err := db.DBClassObject.GetScaleConfigData(dev.DevId); err != nil {
-		config = configFromDb
+	if configFromDb, err := db.DBClassObject.GetScaleConfigData(dev.DevId); err == nil {
+		config = &configFromDb
 	}
-	ValidateDeviceConfigAndSave(c, &config)
+	ValidateDeviceConfigAndSave(c, config)
 }
