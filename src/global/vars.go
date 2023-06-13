@@ -27,15 +27,22 @@ func init() {
 	LoadEnv()
 }
 func LoadEnv() {
-	if _, err := os.Stat(".env"); err == nil {
-		// path/to/whatever exists
-		godotenv.Load(".env")
+	path := ".env"
+	ex, err := os.Executable()
+	if err != nil {
+		path = filepath.Join(ex, ".env")
 	} else {
-		godotenv.Load("./../.env")
+		ex = ""
+	}
+	if _, err := os.Stat(path); err == nil {
+		// path/to/whatever exists
+		godotenv.Load(path)
+	} else {
+		godotenv.Load(filepath.Join(ex, "./../.env"))
 	}
 	defaultValue := make([]byte, 128)
 
-	_, err := rand.Read(defaultValue)
+	_, err = rand.Read(defaultValue)
 	if err != nil {
 		defaultValue = []byte("thisisjustdefaultvalue")
 	}

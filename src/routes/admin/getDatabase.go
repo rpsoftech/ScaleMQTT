@@ -38,13 +38,13 @@ func GetAllMqttStatus(c *gin.Context) {
 
 func GetScaleData(c *gin.Context) {
 	var UserConfig *middlerware.UserClaims
-	if val, ok := c.Get("User"); ok == false {
+	if val, ok := c.Get("User"); !ok {
 		c.String(500, "Something went wrong User Data Not Found")
 	} else {
 		UserConfig = val.(*middlerware.UserClaims)
 	}
 	if val, ok := global.MQTTConnectionWithUidStatusMap[UserConfig.Username]; ok {
-		if val.Connected == false {
+		if !val.Connected {
 			c.String(400, "Not Connected")
 			return
 		}

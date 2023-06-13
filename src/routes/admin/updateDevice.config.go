@@ -83,20 +83,20 @@ func AddDeviceConfig(c *gin.Context) {
 	if err := c.ShouldBindBodyWith(&dev, binding.JSON); err != nil {
 		c.JSON(400, systypes.BaseResponseFormat{
 			Success: false,
-			Error:   "Please Pass Valid Device Id",
+			Error:   "Invalid JSON Data " + err.Error(),
 		})
 		return
 	}
-	if _, err := db.DBClassObject.GetScaleConfigData(dev.DevId); err == nil {
-		c.JSON(400, systypes.BaseResponseFormat{
-			Success: false,
-			Error:   "Please Use new Device Id,Data exists",
-		})
-		return
-	}
+	// if _, err := db.DBClassObject.GetScaleConfigData(dev.DevId); err == nil {
+	// 	c.JSON(400, systypes.BaseResponseFormat{
+	// 		Success: false,
+	// 		Error:   "Please Use new Device Id, Data exists",
+	// 	})
+	// 	return
+	// }
 	config := systypes.ScaleConfigData{
 		DivideMultiplyBy: 1,
-		NegativeChar:     "\\f",
+		NegativeChar:     "\f",
 		DevcfgForMqtt: systypes.DevcfgForMqtt{
 			LogEnable: false,
 		},
