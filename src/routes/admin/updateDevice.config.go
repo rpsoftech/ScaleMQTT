@@ -54,6 +54,8 @@ func ValidateDeviceConfigAndSave(c *gin.Context, config *systypes.ScaleConfigDat
 		global.MQTTserver.Publish(topic, []byte("{\"devcfg\":"+byteConfig+"}"), false, 2)
 		time.Sleep(100 * time.Millisecond)
 		global.MQTTserver.Publish(topic, []byte("{\"mqttcfg\":"+byteConfig+"}"), false, 2)
+		time.Sleep(5 * time.Second)
+		global.MQTTserver.Publish(topic, []byte("{\"request\":\"reset\"}"), false, 2)
 	}(topic, string(byteConfig))
 	c.String(200, string(byteConfig))
 }
