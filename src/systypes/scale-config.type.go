@@ -25,17 +25,19 @@ func (s DivideMultiplyString) String() string {
 	return "unknown"
 }
 
-type MqttBrokerConfig struct {
-	MqttBrokerURI          string `json:"broker_uri" validate:"required" binding:"required"`
-	MqttUsername           string `json:"mqtt_username" validate:"required" binding:"required"`
-	MqttPassword           string `json:"mqtt_password" validate:"required" binding:"required"`
+type MqttBrokerConfigTopic struct {
 	MqttPublishTopic       string `json:"pub_topic" validate:"required" binding:"required"`
 	MqttSerialPublishTopic string `json:"serial_pub_topic" validate:"required" binding:"required"`
 	MqttSubscribeTopic     string `json:"sub_topic" validate:"required" binding:"required"`
-	MqttBrokerPort         int    `json:"broker_port" validate:"required,port" binding:"required"`
+}
+
+type MqttBrokerConfig struct {
+	MqttBrokerURI  string `json:"broker_uri" validate:"required" binding:"required"`
+	MqttUsername   string `json:"mqtt_username" validate:"required" binding:"required"`
+	MqttPassword   string `json:"mqtt_password" validate:"required" binding:"required"`
+	MqttBrokerPort int    `json:"broker_port" validate:"required,port" binding:"required"`
 }
 type DevcfgForMqtt struct {
-	MqttBrokerConfig
 	DevID        string `json:"dev_id" validate:"required" binding:"required"`
 	WifiSsid     string `json:"wifi_ssid" validate:"required" binding:"required"`
 	WifiPassword string `json:"wifi_password" validate:"required" binding:"required"`
@@ -46,6 +48,8 @@ type DevcfgForMqtt struct {
 
 type ScaleConfigData struct {
 	DevcfgForMqtt
+	MqttBrokerConfig
+	MqttBrokerConfigTopic
 	DivideMultiply   DivideMultiplyString `json:"divide_multiply" validate:"required" binding:"required"`
 	DivideMultiplyBy int                  `json:"divide_multiply_by,omitempty"`
 	NegativeChar     string               `json:"negative_char"`
@@ -79,4 +83,10 @@ func (data *ScaleConfigData) Validate() (valid bool, err error) {
 
 func (t *ScaleConfigData) JSON() ([]byte, error) {
 	return json.Marshal(t)
+}
+func (t *ScaleConfigData) MqttJSON() ([]byte, error) {
+	return json.Marshal(t.MqttBrokerConfig)
+}
+func (t *ScaleConfigData) DeviceJSON() ([]byte, error) {
+	return json.Marshal(t.DevcfgForMqtt)
 }

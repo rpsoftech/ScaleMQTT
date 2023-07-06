@@ -48,15 +48,18 @@ func ValidateDeviceConfigAndSave(c *gin.Context, config *systypes.ScaleConfigDat
 	if val, ok := global.MQTTConnectionWithUidStatusMap[config.DevID]; ok {
 		val.Config = config
 	}
+	devcfg, _ := config.DeviceJSON()
+	mqttCfg, _ := config.MqttJSON()
+
 	topic := config.DevID + global.DefaultMQTTDeviceSubscribeTopicSuffix
-	go func(topic string, byteConfig string) {
+	go func(topic string, devcfg string, mqttCfg string) {
 		time.Sleep(100 * time.Millisecond)
-		global.MQTTserver.Publish(topic, []byte("{\"devcfg\":"+byteConfig+"}"), false, 2)
+		global.MQTTserver.Publish(topic, []byte("{\"devcfg\":"+devcfg+"}"), false, 2)
 		time.Sleep(100 * time.Millisecond)
-		global.MQTTserver.Publish(topic, []byte("{\"mqttcfg\":"+byteConfig+"}"), false, 2)
-		time.Sleep(5 * time.Second)
+		global.MQTTserver.Publish(topic, []byte("{\"mqttcfg\":"+mqttCfg+"}"), false, 2)
+		time.Sleep(10 * time.Second)
 		global.MQTTserver.Publish(topic, []byte("{\"request\":\"reset\"}"), false, 2)
-	}(topic, string(byteConfig))
+	}(topic, string(devcfg), string(mqttCfg))
 	c.String(200, string(byteConfig))
 }
 
