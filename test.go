@@ -1,45 +1,32 @@
 package main
 
 import (
-	"crypto/tls"
-	"log"
-	"net/http"
-	"os"
+	"fmt"
 
-	"github.com/gin-gonic/gin"
-	"golang.org/x/crypto/acme/autocert"
+	MT_SICS "github.com/bas-dehaan/MT-SICS"
 )
 
 func main() {
-	r := gin.Default()
-
-	// Ping handler
-	r.GET("/ping", func(c *gin.Context) {
-		c.String(200, "pong")
-	})
-
-	HTTPPORT := os.Getenv("HTTPPORT")
-	if HTTPPORT == "" {
-		HTTPPORT = "1880"
-	}
-	m := autocert.Manager{
-		Prompt: autocert.AcceptTOS,
-
-		HostPolicy: autocert.HostWhitelist("scale.rosof.tech"),
-		// Cache:      autocert.DirCache("/var/www/.cache"),
-	}
-	srv := &http.Server{
-		Addr:    ":" + HTTPPORT,
-		Handler: r,
-		TLSConfig: &tls.Config{
-			GetCertificate: m.GetCertificate,
-		},
+	// Connect to the scale via COM1
+	connection, err := MT_SICS.Connect("/dev/cu.usbserial-0001")
+	defer connection.Close() // Close the connection when the program ends
+	if err != nil {
+		panic(err)
 	}
 
-	// service connections
-	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		log.Fatalf("listen: %s\n", err)
-	} else {
-		println("started listning: %s\n", HTTPPORT)
+	// Get the scale out of standby
+	// err = MT_SICS.PowerOn(connection)
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	// Weigh a sample
+	_ = MT_SICS.SetMessage(connection, "HHHHH")
+	measurement, err := MT_SICS.Weight(connection)
+	if err != nil {
+		panic(err)
 	}
+
+	// Print the measurement
+	fmt.Println(measurement)
 }

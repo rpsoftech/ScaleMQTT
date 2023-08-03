@@ -28,7 +28,7 @@ type MQTTHooks struct {
 	config *Options
 }
 
-var NoNumaricRegEx = regexp.MustCompile(`[^0-9 ]+`)
+var NoNumaricRegEx = regexp.MustCompile(`[^0-9.]+`)
 
 func (h *MQTTHooks) ID() string {
 	return "MQTT Auth Hook With Publish and subscribe Method"
