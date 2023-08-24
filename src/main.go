@@ -98,23 +98,30 @@ func main() {
 	}
 
 	// SSLCRT string
+	tlsConfigLoaded := false
 	SSLKEY := os.Getenv("SSLKEY")
 	SSLCRT := os.Getenv("SSLCRT")
-
 	if SSLKEY != "" && SSLCRT != "" {
 		x509, err := tls.LoadX509KeyPair(SSLCRT, SSLKEY)
 		if err == nil {
 			srv.TLSConfig = &tls.Config{
 				Certificates: []tls.Certificate{x509},
 			}
+			tlsConfigLoaded = true
 		} else {
 			log.Fatalln(err)
 		}
 	}
 
 	go func() {
+		err = nil
+		if tlsConfigLoaded {
+			err = srv.ListenAndServeTLS("", "")
+		} else {
+			err = srv.ListenAndServe()
+		}
 		// service connections
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		if err != nil && err != http.ErrServerClosed {
 			log.Fatalf("listen: %s\n", err)
 		} else {
 			println("started listning: %s\n", HTTPPORT)
