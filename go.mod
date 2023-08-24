@@ -4,6 +4,7 @@ go 1.20
 
 require (
 	git.mills.io/prologic/bitcask v1.0.2
+	github.com/bas-dehaan/MT-SICS v1.0.2
 	github.com/gin-gonic/gin v1.9.0
 	github.com/go-playground/validator/v10 v10.12.0
 	github.com/golang-jwt/jwt/v5 v5.0.0-rc.2
@@ -12,10 +13,7 @@ require (
 	github.com/rs/zerolog v1.29.0
 )
 
-require (
-	github.com/bas-dehaan/MT-SICS v1.0.2 // indirect
-	github.com/jacobsa/go-serial v0.0.0-20180131005756-15cf729a72d4 // indirect
-)
+require github.com/jacobsa/go-serial v0.0.0-20180131005756-15cf729a72d4 // indirect
 
 require (
 	github.com/abcum/lcp v0.0.0-20201209214815-7a3f3840be81 // indirect

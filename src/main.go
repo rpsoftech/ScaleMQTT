@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"log"
 	"net/http"
 	"os"
@@ -81,17 +82,34 @@ func main() {
 	if HTTPPORT == "" {
 		HTTPPORT = "8891"
 	}
+	// cert
 	// m := autocert.Manager{
 	// 	Prompt:     autocert.AcceptTOS,
 	// 	HostPolicy: autocert.HostWhitelist("scale.rosof.tech"),
 	// 	Cache:      autocert.DirCache("/var/www/.cache"),
 	// }
+	// tls.LoadX509KeyPair()
 	srv := &http.Server{
 		Addr:    ":" + HTTPPORT,
 		Handler: r,
 		// TLSConfig: &tls.Config{
 		// 	GetCertificate: m.GetCertificate,
 		// },
+	}
+
+	// SSLCRT string
+	SSLKEY := os.Getenv("SSLKEY")
+	SSLCRT := os.Getenv("SSLCRT")
+
+	if SSLKEY != "" && SSLCRT != "" {
+		x509, err := tls.LoadX509KeyPair(SSLCRT, SSLKEY)
+		if err == nil {
+			srv.TLSConfig = &tls.Config{
+				Certificates: []tls.Certificate{x509},
+			}
+		} else {
+			log.Fatalln(err)
+		}
 	}
 
 	go func() {
